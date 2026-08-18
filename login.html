@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* Keep this page exactly where the visitor left it — on reload, on browser
+   back/forward, and when coming back from an error page. A fresh click on a
+   header menu or quick link always starts at the hero, never a saved section.
+   Browser scroll-restoration is switched off so this script is the only thing
+   that moves the page, and it always does it instantly (no visible scrolling). */
+(function(){
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  var pageKey = 'stackly_scroll::' + location.pathname;
+  var navEntry = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || null;
+  var navType = navEntry ? navEntry.type : (performance.navigation ? (performance.navigation.type === 1 ? 'reload' : performance.navigation.type === 2 ? 'back_forward' : 'navigate') : 'navigate');
+  if (location.hash && location.hash.length > 1) {
+    window.__stacklyReturnHash = location.hash;
+    history.replaceState(null, '', location.pathname + location.search);
+  } else if (navType === 'reload' || navType === 'back_forward' || sessionStorage.getItem('stackly_forceRestore')) {
+    sessionStorage.removeItem('stackly_forceRestore');
+    var savedY = sessionStorage.getItem(pageKey);
+    if (savedY !== null) window.__stacklyRestoreY = parseFloat(savedY);
+  } else {
+    /* Fresh click on a header menu / quick link — always start at the hero,
+       never at whatever section was scrolled to last time on this page. */
+    sessionStorage.removeItem(pageKey);
+  }
+  var saveScroll = function(){ sessionStorage.setItem(pageKey, window.scrollY); };
+  var ticking = false;
+  window.addEventListener('scroll', function(){
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(function(){ saveScroll(); ticking = false; });
+    }
+  }, {passive:true});
+  window.addEventListener('pagehide', saveScroll);
+  window.addEventListener('beforeunload', saveScroll);
+})();
+</script>
+<title>Login — Stackly | Discover. Book. Experience.</title>
+<meta name="description" content="Sign in or create your Stackly account to book tickets or manage your events as an organizer.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+<style>
+/* ===================== TOKENS ===================== */
+:root{
+  --royal:#2563EB;
+  --indigo:#312E81;
+  --cyan:#06B6D4;
+  --violet:#7C3AED;
+  --sky:#38BDF8;
+  --soft-blue:#EFF6FF;
+  --white:#FFFFFF;
+  --slate:#0F172A;
+  --slate-2:#1E293B;
+  --slate-mute:#64748B;
+  --line:#E2E8F0;
+  --grad-primary: linear-gradient(120deg,#2563EB 0%, #06B6D4 100%);
+  --grad-accent: linear-gradient(120deg,#4F46E5 0%, #7C3AED 100%);
+  --grad-dark: linear-gradient(180deg,#0F172A 0%, #1E1B4B 100%);
+  --shadow-sm: 0 2px 8px rgba(15,23,42,0.06);
+  --shadow-md: 0 8px 24px rgba(15,23,42,0.09);
+  --shadow-lg: 0 24px 60px rgba(37,99,235,0.16);
+  --radius: 20px;
+  --radius-sm: 12px;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;overflow-x:hidden;width:100%;}
+body{
+  font-family:var(--font-body);
+  color:var(--slate);
+  background:var(--white);
+  line-height:1.5;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;display:block;}
+a{text-decoration:none;color:inherit;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;}
+ul{list-style:none;}
+input,select{font-family:inherit;}
+.container{max-width:1760px;margin:0 auto;padding:0 40px;}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;line-height:1.1;letter-spacing:-0.01em;}
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:12px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--royal);
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-weight:500;
+}
+.eyebrow::before{content:'';width:20px;height:1px;background:var(--royal);}
+.section{padding:100px 0;}
+.section-head{max-width:640px;margin-bottom:56px;}
+.section-head h2{font-size:clamp(28px,4vw,42px);margin-top:14px;color:var(--slate);}
+.section-head p{margin-top:14px;color:var(--slate-mute);font-size:16px;}
+.section-head.center{margin-left:auto;margin-right:auto;text-align:center;}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:15px 28px;border-radius:100px;font-weight:600;font-size:15px;
+  transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease;
+  white-space:nowrap;
+}
+.btn-primary{background:var(--grad-primary);color:#fff;box-shadow:0 10px 24px rgba(37,99,235,.28);}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(37,99,235,.36);}
+.btn-outline{border:1.5px solid var(--line);color:var(--slate);background:#fff;}
+.btn-outline:hover{border-color:var(--royal);color:var(--royal);transform:translateY(-3px);}
+.btn-ghost{color:var(--white);border:1.5px solid rgba(255,255,255,.35);}
+.btn-ghost:hover{border-color:#fff;transform:translateY(-3px);}
+.btn-sm{padding:10px 20px;font-size:13px;}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;font-size:12px;font-weight:600;}
+.reveal{opacity:0;transform:translateY(40px);}
+
+/* ===================== HEADER ===================== */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  padding:18px 0;
+  background:#fff;
+  box-shadow:0 2px 18px rgba(15,23,42,.07);
+  transition:padding .4s ease, box-shadow .4s ease;
+}
+header.scrolled{
+  padding:12px 0;
+  box-shadow:0 6px 28px rgba(15,23,42,.12);
+}
+.nav-wrap{display:flex;align-items:center;justify-content:space-between;gap:24px;}
+.logo{display:flex;align-items:center;gap:2px;font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--slate);}
+.logo img{height:32px;width:auto;display:block;}
+header.scrolled .logo{color:var(--slate);}
+.logo .mark{
+  width:36px;height:36px;border-radius:10px;background:var(--grad-primary);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;
+  transform:rotate(-6deg);
+}
+.nav-links{display:flex;align-items:center;gap:36px;}
+.nav-links a{
+  font-size:14.5px;font-weight:600;color:var(--slate-2);position:relative;padding:6px 0;
+}
+.nav-links a::after{
+  content:'';position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--grad-primary);
+  transition:width .3s ease;
+}
+.nav-links a:hover::after,.nav-links a.active::after{width:100%;}
+.nav-links a.active{color:var(--royal);}
+.nav-right{display:flex;align-items:center;gap:14px;}
+.hamburger{display:none;flex-direction:column;gap:5px;width:30px;height:24px;justify-content:center;}
+.hamburger span{display:block;height:2px;width:100%;background:var(--slate);border-radius:2px;transition:all .35s ease;}
+.mobile-nav{
+  position:fixed;top:0;right:-340px;height:100vh;width:min(320px,84vw);background:#fff;z-index:1200;
+  box-shadow:-10px 0 40px rgba(15,23,42,.16);transition:right .45s cubic-bezier(.2,.8,.2,1);
+  padding:32px 28px;display:flex;flex-direction:column;gap:8px;
+}
+.mobile-nav.open{right:0;}
+.mobile-nav a{padding:14px 4px;font-weight:600;font-size:16px;border-bottom:1px solid var(--line);color:var(--slate-2);}
+.mobile-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:1100;opacity:0;pointer-events:none;transition:opacity .4s ease;}
+.mobile-overlay.open{opacity:1;pointer-events:auto;}
+.mobile-close{align-self:flex-end;width:36px;height:36px;display:flex;align-items:center;justify-content:center;}
+
+/* ===================== HERO ===================== */
+.hero{
+  position:relative;padding:150px 0 90px;background:var(--grad-dark);color:#fff;overflow:hidden;
+  min-height:100vh;display:flex;align-items:center;
+}
+.hero .container{width:100%;}
+.hero-blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;z-index:0;}
+.blob-1{width:520px;height:520px;background:var(--royal);top:-160px;right:-120px;}
+.blob-2{width:400px;height:400px;background:var(--violet);bottom:-160px;left:-80px;}
+.blob-3{width:280px;height:280px;background:var(--cyan);top:40%;left:44%;opacity:.25;}
+.particle{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);z-index:1;}
+.hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:1.1fr .9fr;gap:60px;align-items:center;}
+.hero-copy .eyebrow{color:var(--sky);}
+.hero-copy .eyebrow::before{background:var(--sky);}
+.hero-copy h1{font-size:clamp(38px,5.4vw,64px);margin-top:18px;color:#fff;}
+.hero-copy h1 .line{display:block;overflow:hidden;}
+.hero-copy h1 .line span{display:inline-block;}
+.hero-copy p{margin-top:20px;font-size:18px;color:rgba(255,255,255,.72);max-width:480px;}
+.hero-ctas{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap;}
+.hero-search{
+  margin-top:44px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
+  border-radius:20px;padding:20px;backdrop-filter:blur(6px);
+}
+.hero-filters{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;}
+.hero-filters select{
+  padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.08);color:#fff;font-size:13px;font-weight:600;outline:none;
+}
+.hero-filters select option{color:#0F172A;}
+.hero-filters .btn{padding:12px 22px;}
+.hero-visual{position:relative;z-index:2;}
+.hero-visual .img-wrap{border-radius:24px;overflow:hidden;position:relative;box-shadow:var(--shadow-lg);}
+.hero-visual img{width:100%;height:clamp(300px,36vw,440px);object-fit:cover;}
+.hero-visual .img-wrap::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,0) 40%,rgba(15,23,42,.55) 100%);}
+.float-card{
+  position:absolute;background:#fff;border-radius:16px;padding:14px 16px;box-shadow:var(--shadow-lg);
+  display:flex;align-items:center;gap:12px;min-width:200px;color:var(--slate);
+}
+.float-card .fc-cat{width:44px;height:44px;border-radius:10px;flex-shrink:0;background:var(--grad-primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;}
+.float-card .fc-title{font-weight:700;font-size:13.5px;}
+.float-card .fc-meta{font-size:11.5px;color:var(--slate-mute);margin-top:2px;}
+.float-card .fc-price{font-size:12px;font-weight:700;color:var(--royal);margin-top:4px;}
+.float-1{top:-24px;left:-30px;}
+.float-2{bottom:60px;right:-36px;}
+.float-3{bottom:-30px;left:20px;}
+
+/* ===================== TICKET CARD MOTIF ===================== */
+.ticket-card{
+  position:relative;background:#fff;border-radius:18px;overflow:hidden;box-shadow:var(--shadow-sm);
+  border:1px solid var(--line);transition:transform .4s cubic-bezier(.2,.8,.2,1), box-shadow .4s ease;
+}
+.ticket-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-lg);}
+.ticket-media{position:relative;height:190px;overflow:hidden;}
+.ticket-media img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.8,.2,1);}
+.ticket-card:hover .ticket-media img{transform:scale(1.08);}
+.ticket-badge{position:absolute;top:12px;left:12px;padding:5px 12px;border-radius:100px;font-size:11px;font-weight:700;color:#fff;letter-spacing:.02em;}
+.badge-trending{background:linear-gradient(120deg,#F97316,#EF4444);}
+.badge-selling{background:linear-gradient(120deg,#7C3AED,#DB2777);}
+.badge-few{background:linear-gradient(120deg,#DC2626,#B91C1C);}
+.badge-new{background:var(--grad-primary);}
+.ticket-cat{position:absolute;bottom:12px;left:12px;background:rgba(15,23,42,.72);color:#fff;font-size:10.5px;font-weight:600;padding:4px 10px;border-radius:100px;backdrop-filter:blur(4px);}
+.ticket-body{padding:18px 18px 20px;position:relative;}
+.ticket-body h4{font-size:16.5px;margin-bottom:8px;}
+.ticket-meta{font-size:12.5px;color:var(--slate-mute);display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+.ticket-perf{
+  position:relative;border-top:1.5px dashed var(--line);margin:0 -18px;padding:14px 18px 0;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.ticket-perf::before,.ticket-perf::after{
+  content:'';position:absolute;top:-8px;width:16px;height:16px;border-radius:50%;background:var(--white);border:1.5px solid var(--line);
+}
+.ticket-perf::before{left:-8px;}
+.ticket-perf::after{right:-8px;}
+.ticket-price{font-size:11px;color:var(--slate-mute);}
+.ticket-price b{display:block;font-size:16px;color:var(--slate);font-family:var(--font-display);}
+.book-btn{padding:9px 18px;border-radius:100px;background:var(--slate);color:#fff;font-size:12.5px;font-weight:700;transition:background .3s ease, transform .3s ease;}
+.book-btn:hover{background:var(--royal);transform:translateY(-2px);}
+
+/* grids */
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:20px;}
+
+/* ===================== CATEGORIES ===================== */
+.cat-card{
+  position:relative;border-radius:18px;overflow:hidden;height:220px;cursor:pointer;
+}
+.cat-card img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.8,.2,1);}
+.cat-card::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,0) 30%,rgba(15,23,42,.82) 100%);transition:opacity .4s ease;}
+.cat-card:hover img{transform:scale(1.12) rotate(1deg);}
+.cat-label{position:absolute;left:18px;bottom:16px;z-index:2;color:#fff;}
+.cat-label .icon{font-size:22px;margin-bottom:6px;display:block;transform:translateY(0);transition:transform .4s ease;}
+.cat-card:hover .icon{transform:translateY(-6px);}
+.cat-label h4{font-size:15.5px;font-weight:700;}
+.cat-label span{font-size:11.5px;opacity:0;max-height:0;display:block;transition:opacity .35s ease;color:rgba(255,255,255,.8);}
+.cat-card:hover .cat-label span{opacity:1;}
+.explore-all{display:flex;justify-content:center;margin-top:44px;}
+
+/* ===================== TRAIN ROUTE ANIMATION ===================== */
+.train-route{position:relative;height:40px;margin-bottom:36px;overflow:hidden;}
+.route-line{position:absolute;inset:0;width:100%;height:100%;}
+.route-line line{stroke:var(--line);stroke-width:2;}
+.train-track{position:absolute;top:50%;left:0;transform:translate(-10%,-50%);animation:trainGo 9s linear infinite;}
+.train-emoji{display:inline-block;font-size:26px;filter:drop-shadow(0 4px 8px rgba(37,99,235,.35));}
+@keyframes trainGo{
+  0%{transform:translate(-10%,-50%);}
+  100%{transform:translate(1120px,-50%);}
+}
+@media (max-width:768px){
+.container{padding:0 20px;}
+  @keyframes trainGo{
+    0%{transform:translate(-10%,-50%);}
+    100%{transform:translate(340px,-50%);}
+  }
+}
+
+/* ===================== CITY DISCOVERY ===================== */
+.city-card{position:relative;border-radius:18px;overflow:hidden;height:260px;}
+.city-card img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.2,.8,.2,1);}
+.city-card:hover img{transform:scale(1.1);}
+.city-card::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,.05) 20%,rgba(15,23,42,.85) 100%);}
+.city-info{position:absolute;left:18px;bottom:16px;z-index:2;color:#fff;}
+.city-info h4{font-size:19px;}
+.city-info span{font-size:12px;opacity:.85;}
+.city-card.hq::before{
+  content:'HQ CITY';position:absolute;top:14px;right:14px;z-index:3;background:var(--grad-accent);
+  color:#fff;font-size:10px;font-weight:700;padding:5px 10px;border-radius:100px;letter-spacing:.04em;
+}
+
+/* ===================== TABS (Upcoming) ===================== */
+.tabs{display:flex;gap:8px;margin-bottom:36px;background:var(--soft-blue);padding:6px;border-radius:100px;width:fit-content;}
+.tab-btn{padding:11px 24px;border-radius:100px;font-weight:700;font-size:13.5px;color:var(--slate-mute);transition:all .35s ease;}
+.tab-btn.active{background:var(--grad-primary);color:#fff;box-shadow:0 8px 18px rgba(37,99,235,.3);}
+.tab-panel{display:none;}
+.tab-panel.active{display:grid;}
+
+/* ===================== FEATURED EVENT ===================== */
+.featured{background:var(--slate);color:#fff;border-radius:28px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;}
+.featured-img{position:relative;height:100%;min-height:460px;}
+.featured-img img{width:100%;height:100%;object-fit:cover;}
+.featured-info{padding:52px;display:flex;flex-direction:column;justify-content:center;}
+.featured-info .eyebrow{color:var(--sky);}
+.featured-info .eyebrow::before{background:var(--sky);}
+.featured-info h3{font-size:clamp(26px,3vw,34px);margin:14px 0 18px;}
+.f-meta{display:flex;flex-direction:column;gap:10px;font-size:14.5px;color:rgba(255,255,255,.78);margin-bottom:20px;}
+.f-price{font-size:26px;font-family:var(--font-display);font-weight:700;color:#fff;margin-bottom:24px;}
+.f-price span{font-size:13px;color:rgba(255,255,255,.6);font-weight:400;display:block;margin-bottom:4px;}
+.f-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px;}
+.f-icon-btn{width:46px;height:46px;border-radius:100px;border:1.5px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;transition:all .3s ease;}
+.f-icon-btn:hover{border-color:#fff;background:rgba(255,255,255,.08);}
+.f-extra{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-top:24px;border-top:1px solid rgba(255,255,255,.14);}
+.f-extra div span{display:block;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.f-extra div b{font-size:14px;font-weight:600;}
+
+/* ===================== BOOKING ===================== */
+.booking-wrap{display:grid;grid-template-columns:1.3fr .9fr;gap:32px;align-items:start;}
+.flow-steps{display:flex;flex-wrap:wrap;gap:0;margin-bottom:40px;}
+.flow-step{display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:700;color:var(--slate-mute);}
+.flow-step .num{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;}
+.flow-step.done .num{background:var(--grad-primary);color:#fff;border:none;}
+.flow-step.done{color:var(--slate);}
+.flow-arrow{width:34px;text-align:center;color:var(--line);font-size:14px;}
+.ticket-type-card{
+  display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border:1.5px solid var(--line);
+  border-radius:16px;margin-bottom:14px;transition:border-color .3s ease;
+}
+.ticket-type-card.selected{border-color:var(--royal);background:var(--soft-blue);}
+.tt-left h4{font-size:15.5px;margin-bottom:4px;}
+.tt-left span{font-size:12.5px;color:var(--slate-mute);}
+.tt-price{font-family:var(--font-display);font-weight:700;font-size:17px;margin-right:20px;}
+.qty-control{display:flex;align-items:center;gap:12px;}
+.qty-control button{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--line);font-size:16px;font-weight:700;color:var(--slate);}
+.qty-control button:hover{border-color:var(--royal);color:var(--royal);}
+.qty-control span{min-width:16px;text-align:center;font-weight:700;}
+.summary-card{background:var(--soft-blue);border-radius:20px;padding:28px;position:sticky;top:110px;}
+.summary-card h4{font-size:17px;margin-bottom:20px;}
+.summary-row{display:flex;justify-content:space-between;font-size:14px;color:var(--slate-mute);margin-bottom:12px;}
+.summary-row.total{border-top:1.5px dashed var(--line);margin-top:14px;padding-top:14px;font-weight:700;color:var(--slate);font-size:16px;}
+.pay-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:22px 0;}
+.pay-opt{padding:12px;border-radius:10px;border:1.5px solid var(--line);text-align:center;font-size:12.5px;font-weight:700;background:#fff;transition:all .3s ease;}
+.pay-opt.active{border-color:var(--royal);color:var(--royal);background:#fff;box-shadow:0 4px 14px rgba(37,99,235,.16);}
+
+/* ===================== DIGITAL TICKET ===================== */
+.dticket{
+  background:var(--slate);border-radius:24px;color:#fff;display:grid;grid-template-columns:1fr auto;overflow:hidden;
+  position:relative;box-shadow:var(--shadow-lg);
+}
+.dticket-main{padding:44px;}
+.dticket-main .conf{color:var(--cyan);font-weight:700;font-size:14px;margin-bottom:6px;}
+.dticket-main h3{font-size:26px;margin-bottom:22px;}
+.dt-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 28px;margin-bottom:28px;}
+.dt-grid div span{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.45);margin-bottom:5px;}
+.dt-grid div b{font-size:14.5px;font-weight:600;}
+.dt-actions{display:flex;gap:12px;flex-wrap:wrap;}
+.dticket-stub{
+  background:rgba(255,255,255,.06);border-left:2px dashed rgba(255,255,255,.25);
+  padding:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;width:220px;
+}
+.qr-box{width:130px;height:130px;background:#fff;border-radius:12px;padding:8px;}
+.qr-box svg{width:100%;height:100%;}
+.dticket-stub .bid{font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.6);letter-spacing:.04em;}
+
+/* ===================== HOST/ORGANIZER ===================== */
+.host-section{background:var(--soft-blue);border-radius:28px;padding:60px;display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center;}
+.feature-list{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0 32px;}
+.feature-item{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;}
+.feature-item .dot{width:8px;height:8px;border-radius:50%;background:var(--grad-primary);flex-shrink:0;}
+.host-img{border-radius:20px;overflow:hidden;box-shadow:var(--shadow-md);}
+.host-img img{width:100%;height:420px;object-fit:cover;}
+
+/* ===================== HOW IT WORKS ===================== */
+.steps-wrap{position:relative;}
+.step-row{display:grid;grid-template-columns:auto 1fr;gap:28px;padding:32px 0;border-bottom:1px solid var(--line);}
+.step-row:last-child{border-bottom:none;}
+.step-num{font-family:var(--font-display);font-size:44px;font-weight:700;background:var(--grad-primary);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.step-row h4{font-size:19px;margin-bottom:8px;}
+.step-row p{color:var(--slate-mute);font-size:14.5px;max-width:520px;}
+
+/* ===================== BLOG ===================== */
+.blog-card{border-radius:18px;overflow:hidden;border:1px solid var(--line);}
+.blog-img{height:190px;overflow:hidden;}
+.blog-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease;}
+.blog-card:hover .blog-img img{transform:scale(1.08);}
+.blog-body{padding:20px;}
+.blog-cat{font-size:11px;font-weight:700;color:var(--royal);text-transform:uppercase;letter-spacing:.04em;}
+.blog-body h4{font-size:16px;margin:10px 0 8px;}
+.blog-body p{font-size:13.5px;color:var(--slate-mute);margin-bottom:14px;}
+.blog-meta{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--slate-mute);}
+.read-more{color:var(--royal);font-weight:700;}
+
+/* ===================== NEWSLETTER ===================== */
+.newsletter{background:var(--grad-accent);border-radius:28px;padding:64px;text-align:center;color:#fff;position:relative;overflow:hidden;}
+.newsletter h2{font-size:clamp(26px,3.4vw,38px);}
+.newsletter p{margin:14px auto 30px;max-width:480px;color:rgba(255,255,255,.85);}
+.nl-form{display:flex;gap:10px;max-width:440px;margin:0 auto;}
+.nl-form input{flex:1;padding:15px 20px;border-radius:100px;border:none;outline:none;font-size:14.5px;}
+.nl-form button{padding:15px 26px;border-radius:100px;background:var(--slate);color:#fff;font-weight:700;font-size:14.5px;transition:transform .3s ease;}
+.nl-form button:hover{transform:translateY(-2px);}
+.nl-msg{margin-top:14px;font-size:13px;color:#fff;min-height:18px;}
+
+/* ===================== FOOTER ===================== */
+footer{background:var(--slate);color:rgba(255,255,255,.7);padding:80px 0 30px;}
+.footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1.2fr;gap:32px;padding-bottom:50px;border-bottom:1px solid rgba(255,255,255,.1);}
+.footer-grid h5{color:#fff;font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:20px;}
+.footer-grid ul li{margin-bottom:12px;font-size:14px;}
+.footer-grid ul li a:hover{color:#fff;}
+.footer-brand p{font-size:14px;margin:16px 0 22px;line-height:1.7;color:rgba(255,255,255,.55);}
+.social-row{display:flex;gap:10px;}
+.social-icon{
+  width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;
+  transition:all .35s ease;color:#fff;
+}
+.social-icon:hover{transform:translateY(-4px);}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-top:26px;font-size:13px;}
+.footer-bottom .links{display:flex;gap:18px;flex-wrap:wrap;}
+/* ===================== RESPONSIVE ===================== */
+@media (max-width:1024px){
+  .grid-4{grid-template-columns:repeat(2,1fr);}
+  .grid-5{grid-template-columns:repeat(3,1fr);}
+  .hero-grid{grid-template-columns:1fr;}
+  .hero-visual{order:-1;}
+  .float-card{display:none;}
+  .featured{grid-template-columns:1fr;}
+  .booking-wrap{grid-template-columns:1fr;}
+  .host-section{grid-template-columns:1fr;padding:40px;}
+  .footer-grid{grid-template-columns:1fr 1fr;}
+  .nav-links{display:none;}
+  .hamburger{display:flex;}
+}
+@media (max-width:768px){
+  .grid-3{grid-template-columns:1fr 1fr;}
+  .grid-5{grid-template-columns:1fr 1fr;}
+  .section{padding:64px 0;}
+  .hero{padding:112px 0 56px;min-height:0;}
+  .hero-visual{display:none;}
+  .hero-filters{grid-template-columns:1fr 1fr;}
+  .dticket{grid-template-columns:1fr;}
+  .dticket-stub{border-left:none;border-top:2px dashed rgba(255,255,255,.25);width:100%;flex-direction:row;justify-content:center;}
+  .f-extra{grid-template-columns:1fr;}
+  .nav-right .btn-primary.btn-sm{display:none;}
+}
+@media (max-width:600px){
+  .grid-4,.grid-3,.grid-5{grid-template-columns:1fr 1fr;}
+  .feature-list{grid-template-columns:1fr;}
+  .hero-filters{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr 1fr;}
+}
+@media (max-width:425px){
+  .grid-4,.grid-3,.grid-5{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr;}
+  .footer-bottom{flex-direction:column;align-items:flex-start;}
+  .host-section{padding:28px;}
+  .newsletter{padding:40px 24px;}
+  .nl-form{flex-direction:column;}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:0.01ms !important;transition-duration:0.01ms !important;}
+}
+:focus-visible{outline:2.5px solid var(--royal);outline-offset:2px;}
+
+/* ===================== AUTH PAGE ===================== */
+.auth-section{padding:150px 0 90px;background:var(--soft-blue);min-height:100vh;display:flex;align-items:center;}
+.auth-shell{
+  display:grid;grid-template-columns:1fr 1.05fr;max-width:1080px;margin:0 auto;
+  border-radius:28px;overflow:hidden;box-shadow:var(--shadow-lg);background:#fff;min-height:640px;
+}
+.auth-visual{position:relative;background:var(--grad-dark);color:#fff;padding:52px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;}
+.auth-visual > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.32;animation:authKenBurns 18s ease-in-out infinite alternate;}
+@keyframes authKenBurns{0%{transform:scale(1) translate(0,0);}100%{transform:scale(1.12) translate(-2%,-2%);}}
+.auth-float-badge{
+  position:absolute;top:36px;right:36px;z-index:3;background:rgba(255,255,255,.14);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:8px;display:flex;align-items:center;gap:10px;
+  animation:heroFloat 6s ease-in-out infinite;
+}
+.auth-float-badge img{position:static;width:38px;height:38px;border-radius:8px;object-fit:cover;opacity:1;animation:none;}
+.auth-float-badge span{font-size:11.5px;font-weight:700;color:#fff;padding-right:6px;white-space:nowrap;}
+@keyframes heroFloat{0%,100%{transform:translateY(0) rotate(-2deg);}50%{transform:translateY(-14px) rotate(1deg);}}
+@media (max-width:1024px){.auth-float-badge{display:none;}}
+.auth-visual::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(15,23,42,.55) 0%, rgba(37,99,235,.55) 60%, rgba(124,58,237,.6) 100%);}
+.auth-visual .av-content{position:relative;z-index:2;}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:40px;}
+.brand-logo{height:32px;width:32px;object-fit:contain;display:block;flex-shrink:0;}
+.brand-text{font-family:var(--font-display);font-weight:700;font-size:22px;color:#fff;letter-spacing:-0.01em;}
+.brand-stack,.brand-ly{color:#fff;}
+.auth-visual h2{font-size:clamp(24px,2.6vw,32px);line-height:1.3;max-width:360px;}
+.auth-visual p{margin-top:14px;color:rgba(255,255,255,.75);font-size:14.5px;max-width:360px;}
+.auth-stats{position:relative;z-index:2;display:flex;gap:28px;flex-wrap:wrap;}
+.auth-stats div b{display:block;font-family:var(--font-display);font-size:24px;}
+.auth-stats div span{font-size:11.5px;color:rgba(255,255,255,.65);}
+
+.auth-form-panel{padding:52px;display:flex;flex-direction:column;}
+.auth-tabs{display:flex;gap:0;background:var(--soft-blue);border-radius:100px;padding:6px;margin-bottom:32px;position:relative;}
+.auth-tab-btn{flex:1;padding:12px;border-radius:100px;font-weight:700;font-size:14px;color:var(--slate-mute);position:relative;z-index:2;transition:color .3s ease;text-align:center;}
+.auth-tab-btn.active{color:#fff;}
+.auth-tab-indicator{position:absolute;top:6px;left:6px;width:calc(50% - 6px);height:calc(100% - 12px);background:var(--grad-primary);border-radius:100px;transition:transform .4s cubic-bezier(.2,.8,.2,1);z-index:1;}
+
+.auth-panel{display:none;}
+.auth-panel.active{display:block;}
+
+/* ---- form fields ---- */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-field{display:flex;flex-direction:column;gap:7px;margin-bottom:18px;}
+.form-field label{font-size:12.5px;font-weight:700;color:var(--slate-2);letter-spacing:.01em;}
+.form-field input,
+.form-field select{
+  width:100%;padding:13px 16px;border:1.5px solid var(--line);border-radius:12px;
+  font-size:14.5px;font-family:inherit;color:var(--slate);background:#fbfdff;
+  transition:border-color .25s ease, box-shadow .25s ease, background .25s ease;
+}
+.form-field input::placeholder{color:var(--slate-mute);opacity:.7;}
+.form-field input:focus,
+.form-field select:focus{
+  outline:none;border-color:var(--royal);background:#fff;
+  box-shadow:0 0 0 4px rgba(37,99,235,.12);
+}
+.pw-field{position:relative;}
+.pw-field input{padding-right:46px;}
+.pw-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--slate-mute);cursor:pointer;background:none;padding:8px;border-radius:8px;}
+.pw-toggle:hover{background:var(--soft-blue);}
+
+.role-toggle{display:flex;gap:10px;margin-bottom:20px;}
+.role-opt{flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--line);text-align:center;font-size:13px;font-weight:700;color:var(--slate-mute);cursor:pointer;transition:all .3s ease;}
+.role-opt:hover{border-color:var(--royal);}
+.role-opt.active{border-color:var(--royal);color:var(--royal);background:rgba(37,99,235,.06);}
+.role-opt input{display:none;}
+
+.auth-extra-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin:4px 0 20px;flex-wrap:wrap;gap:8px;}
+.remember-row{display:flex;align-items:center;gap:8px;color:var(--slate-mute);}
+.remember-row input{accent-color:var(--royal);width:15px;height:15px;}
+.forgot-link{color:var(--royal);font-weight:600;}
+.switch-row{text-align:center;margin-top:20px;font-size:13.5px;color:var(--slate-mute);}
+.switch-row button{color:var(--royal);font-weight:700;}
+.form-msg{margin-top:14px;font-size:13px;font-weight:600;text-align:center;min-height:0;}
+.form-msg.err{color:#DC2626;}
+.form-msg.ok{color:#16A34A;}
+.field-err{display:none;font-size:12px;font-weight:600;color:#DC2626;margin-top:5px;}
+.field-err.show{display:block;}
+.form-field.has-error input,
+.form-field.has-error select{border-color:#DC2626;}
+.form-field.has-error .role-toggle{border:1px solid #DC2626;border-radius:12px;}
+
+/* ===================== BACK TO HOME BUTTON ===================== */
+.auth-footer{
+  padding-top:20px;border-top:1px solid var(--line);
+  display:flex;justify-content:center;margin-top:28px;
+}
+.btn-back-home{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:12px 24px;border-radius:100px;font-weight:600;font-size:14px;
+  border:1.5px solid var(--line);color:var(--slate-mute);background:#fff;
+  transition:all .3s ease;
+}
+.btn-back-home:hover{
+  border-color:var(--royal);color:var(--royal);transform:translateY(-2px);
+  box-shadow:0 6px 16px rgba(37,99,235,.14);
+}
+
+@media (max-width:1024px){
+  .auth-shell{grid-template-columns:1fr;max-width:520px;}
+  .auth-visual{padding:40px;min-height:220px;}
+  .auth-stats{display:none;}
+}
+@media (max-width:560px){
+  .form-row{grid-template-columns:1fr;gap:0;}
+  .auth-form-panel{padding:32px 24px;}
+}
+@media (max-width:600px){
+  .auth-section{padding:120px 0 60px;}
+  .auth-form-panel{padding:30px 24px;}
+  .auth-visual{padding:32px 24px;min-height:170px;}
+}
+
+</style>
+</head>
+<body>
+
+<!-- ===================== AUTH SECTION ===================== -->
+<section class="auth-section" id="authSection">
+  <div class="container">
+    <div class="auth-shell reveal">
+
+      <div class="auth-visual">
+        <img src="./assets/sunburn.webp" alt="Crowd enjoying a live concert at night">
+        <div class="auth-float-badge">
+          <img src="assets/e3.webp" alt="Live concert performance">
+          <span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2.5a2 2 0 0 0 0 3V16a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2.5a2 2 0 0 0 0-3V8z"/><line x1="13" y1="6" x2="13" y2="18" stroke-dasharray="2.2 2.2"/></svg> Ticket Confirmed</span>
+        </div>
+        <div class="av-content">
+          <a href="index.html" class="brand">
+            <img class="brand-logo" src="assets/stackly-logo.webp" alt="Stackly logo" width="32" height="32">
+            <span class="brand-text"><span class="brand-stack">Stack</span><span class="brand-ly">ly</span></span>
+          </a>
+          <h2>Your Next Favourite Event Is One Login Away.</h2>
+          <p>Book tickets in seconds, manage your bookings, and — if you're an organizer — track sales in real time.</p>
+        </div>
+        <div class="auth-stats">
+          <div><b class="counter" data-target="12480">0</b><span>Tickets Booked</span></div>
+          <div><b class="counter" data-target="640">0</b><span>Live Events</span></div>
+          <div><b class="counter" data-target="48">0</b><span>Cities</span></div>
+        </div>
+      </div>
+
+      <div class="auth-form-panel">
+        <div class="auth-tabs" id="authTabs">
+          <span class="auth-tab-indicator" id="authTabIndicator"></span>
+          <button class="auth-tab-btn active" data-tab="signin">Sign In</button>
+          <button class="auth-tab-btn" data-tab="signup">Sign Up</button>
+        </div>
+
+        <!-- ===== SIGN IN ===== -->
+        <div class="auth-panel active" id="panel-signin">
+          <div class="role-toggle" id="signinRole">
+            <label class="role-opt active" data-role="user"><input type="radio" name="signinRole" checked>User Login</label>
+            <label class="role-opt" data-role="admin"><input type="radio" name="signinRole">Admin Login</label>
+          </div>
+          <form id="signinForm" novalidate>
+            <div class="form-field" id="fld-si-email"><label for="si-email">Email Address</label><input id="si-email" type="email" placeholder="you@example.com" required><span class="field-err" id="err-si-email"></span></div>
+            <div class="form-field" id="fld-si-password">
+              <label for="si-password">Password</label>
+              <div class="pw-field">
+                <input id="si-password" type="password" placeholder="Enter your password" required>
+                <button type="button" class="pw-toggle" data-target="si-password" aria-label="Show password"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              </div>
+              <span class="field-err" id="err-si-password"></span>
+            </div>
+            <div class="auth-extra-row">
+              <label class="remember-row"><input type="checkbox">Remember me</label>
+              <a href="404.html" onclick="error(this); return false;" class="forgot-link">Forgot password?</a>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">Login</button>
+            <div class="form-msg" id="signinMsg"></div>
+          </form>
+          <div class="switch-row">Don't have an account? <button type="button" data-goto="signup">Sign Up</button></div>
+        </div>
+
+        <!-- ===== SIGN UP ===== -->
+        <div class="auth-panel" id="panel-signup">
+          <form id="signupForm" novalidate>
+            <div class="form-row">
+              <div class="form-field" id="fld-su-first"><label for="su-first">First Name</label><input id="su-first" type="text" placeholder="First name" required><span class="field-err" id="err-su-first"></span></div>
+              <div class="form-field" id="fld-su-last"><label for="su-last">Last Name</label><input id="su-last" type="text" placeholder="Last name" required><span class="field-err" id="err-su-last"></span></div>
+            </div>
+            <div class="form-row">
+              <div class="form-field" id="fld-su-phone"><label for="su-phone">Phone Number</label><input id="su-phone" type="tel" inputmode="numeric" placeholder="+91 00000 00000" required><span class="field-err" id="err-su-phone"></span></div>
+              <div class="form-field" id="fld-su-email"><label for="su-email">Email ID</label><input id="su-email" type="email" placeholder="you@example.com" required><span class="field-err" id="err-su-email"></span></div>
+            </div>
+            <div class="form-row">
+              <div class="form-field" id="fld-su-password">
+                <label for="su-password">Enter Password</label>
+                <div class="pw-field">
+                  <input id="su-password" type="password" placeholder="Create a password" required minlength="6">
+                  <button type="button" class="pw-toggle" data-target="su-password" aria-label="Show password"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                </div>
+                <span class="field-err" id="err-su-password"></span>
+              </div>
+              <div class="form-field" id="fld-su-confirm">
+                <label for="su-confirm">Confirm Password</label>
+                <div class="pw-field">
+                  <input id="su-confirm" type="password" placeholder="Re-enter password" required minlength="6">
+                  <button type="button" class="pw-toggle" data-target="su-confirm" aria-label="Show password"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                </div>
+                <span class="field-err" id="err-su-confirm"></span>
+              </div>
+            </div>
+            <div class="form-field" id="fld-su-role">
+              <label>Role</label>
+              <div class="role-toggle" id="signupRole">
+                <label class="role-opt active" data-role="user"><input type="radio" name="signupRole" checked>User</label>
+                <label class="role-opt" data-role="admin"><input type="radio" name="signupRole">Admin</label>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">Create Account</button>
+            <div class="form-msg" id="signupMsg"></div>
+          </form>
+          <div class="switch-row" id="signupSwitchRow">Already have an account? <button type="button" data-goto="signin">Sign In</button></div>
+        </div>
+
+        <!-- ===== BACK TO HOME BUTTON ===== -->
+        <div class="auth-footer">
+          <a href="index.html" class="btn-back-home">
+            <span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></span>
+            <span>Back to Home</span>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+gsap.registerPlugin(ScrollTrigger);
+
+/* ---------- TAB SWITCH ---------- */
+const tabBtns = document.querySelectorAll('.auth-tab-btn');
+const indicator = document.getElementById('authTabIndicator');
+function setTab(name){
+  tabBtns.forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+  indicator.style.transform = name==='signup' ? 'translateX(100%)' : 'translateX(0)';
+  document.querySelectorAll('.auth-panel').forEach(p=>p.classList.remove('active'));
+  const panel = document.getElementById('panel-'+name);
+  panel.classList.add('active');
+  gsap.fromTo(panel, {opacity:0, y:14}, {opacity:1, y:0, duration:0.45, ease:'power2.out'});
+  history.replaceState(null, '', '#'+name);
+}
+tabBtns.forEach(b=> b.addEventListener('click', ()=> setTab(b.dataset.tab)));
+document.querySelectorAll('[data-goto]').forEach(b=> b.addEventListener('click', ()=> setTab(b.dataset.goto)));
+if(location.hash === '#signup') setTab('signup');
+
+/* ---------- ROLE TOGGLES ---------- */
+document.querySelectorAll('.role-toggle').forEach(group=>{
+  group.querySelectorAll('.role-opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      group.querySelectorAll('.role-opt').forEach(o=>o.classList.remove('active'));
+      opt.classList.add('active');
+      opt.querySelector('input').checked = true;
+    });
+  });
+});
+
+/* ---------- PASSWORD SHOW/HIDE ---------- */
+document.querySelectorAll('.pw-toggle').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const input = document.getElementById(btn.dataset.target);
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    btn.innerHTML = show ? '<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>' : '<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  });
+});
+
+/* ---------- FIELD ERROR HELPERS ---------- */
+function setFieldError(fieldId, errId, message){
+  const field = document.getElementById(fieldId);
+  const err = document.getElementById(errId);
+  if(field) field.classList.add('has-error');
+  if(err){ err.textContent = message; err.classList.add('show'); }
+}
+function clearFieldError(fieldId, errId){
+  const field = document.getElementById(fieldId);
+  const err = document.getElementById(errId);
+  if(field) field.classList.remove('has-error');
+  if(err){ err.textContent = ''; err.classList.remove('show'); }
+}
+function clearAllFieldErrors(ids){
+  ids.forEach(([f,e]) => clearFieldError(f,e));
+}
+
+/* ---------- SIGN IN SUBMIT ---------- */
+const signinFieldIds = [['fld-si-email','err-si-email'], ['fld-si-password','err-si-password']];
+document.getElementById('signinForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const msg = document.getElementById('signinMsg');
+  msg.textContent = ''; msg.className = 'form-msg';
+  clearAllFieldErrors(signinFieldIds);
+
+  const email = document.getElementById('si-email').value.trim();
+  const pw = document.getElementById('si-password').value;
+  let hasError = false;
+
+  if(!email){
+    setFieldError('fld-si-email','err-si-email','Please enter your email address.');
+    hasError = true;
+  } else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    setFieldError('fld-si-email','err-si-email','Please enter a valid email address.');
+    hasError = true;
+  }
+  if(!pw){
+    setFieldError('fld-si-password','err-si-password','Please enter your password.');
+    hasError = true;
+  }
+  if(hasError){
+    gsap.fromTo('#panel-signin form', {x:-6}, {x:0, duration:0.4, ease:'elastic.out(1,0.4)'});
+    return;
+  }
+  const role = document.querySelector('#signinRole .role-opt.active').dataset.role;
+  msg.textContent = 'Login successful as ' + (role==='admin'?'Admin':'User') + '. Redirecting…';
+  msg.className = 'form-msg ok';
+  localStorage.setItem('stackly_user_email', email);
+  localStorage.setItem('stackly_user_role', role);
+  const dest = role === 'admin' ? 'admin-dashboard.html' : 'user-dashboard.html';
+  setTimeout(()=>{ window.location.href = dest; }, 1200);
+});
+
+/* ---------- SIGN UP: live input restriction ---------- */
+const suFirst = document.getElementById('su-first');
+const suLast = document.getElementById('su-last');
+const suPhone = document.getElementById('su-phone');
+suFirst.addEventListener('input', ()=>{ suFirst.value = suFirst.value.replace(/[^A-Za-z\s'-]/g, ''); });
+suLast.addEventListener('input', ()=>{ suLast.value = suLast.value.replace(/[^A-Za-z\s'-]/g, ''); });
+suPhone.addEventListener('input', ()=>{ suPhone.value = suPhone.value.replace(/[^0-9+\s]/g, ''); });
+
+/* ---------- SIGN UP SUBMIT ---------- */
+const signupFieldIds = [
+  ['fld-su-first','err-su-first'], ['fld-su-last','err-su-last'],
+  ['fld-su-phone','err-su-phone'], ['fld-su-email','err-su-email'],
+  ['fld-su-password','err-su-password'], ['fld-su-confirm','err-su-confirm']
+];
+document.getElementById('signupForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const msg = document.getElementById('signupMsg');
+  msg.textContent = ''; msg.className = 'form-msg';
+  clearAllFieldErrors(signupFieldIds);
+
+  const first = suFirst.value.trim();
+  const last = suLast.value.trim();
+  const phone = suPhone.value.trim();
+  const email = document.getElementById('su-email').value.trim();
+  const pw = document.getElementById('su-password').value;
+  const confirm = document.getElementById('su-confirm').value;
+
+  const nameRe = /^[A-Za-z\s'-]{1,}$/;
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const phoneDigits = phone.replace(/\D/g, '');
+  let hasError = false;
+
+  if(!first){ setFieldError('fld-su-first','err-su-first','First name is required.'); hasError = true; }
+  else if(!nameRe.test(first)){ setFieldError('fld-su-first','err-su-first','Name can only contain letters.'); hasError = true; }
+
+  if(!last){ setFieldError('fld-su-last','err-su-last','Last name is required.'); hasError = true; }
+  else if(!nameRe.test(last)){ setFieldError('fld-su-last','err-su-last','Name can only contain letters.'); hasError = true; }
+
+  if(!phone){ setFieldError('fld-su-phone','err-su-phone','Phone number is required.'); hasError = true; }
+  else if(phoneDigits.length < 10){ setFieldError('fld-su-phone','err-su-phone','Enter a valid phone number (at least 10 digits).'); hasError = true; }
+
+  if(!email){ setFieldError('fld-su-email','err-su-email','Email address is required.'); hasError = true; }
+  else if(!emailOk){ setFieldError('fld-su-email','err-su-email','Please enter a valid email address.'); hasError = true; }
+
+  if(!pw){ setFieldError('fld-su-password','err-su-password','Password is required.'); hasError = true; }
+  else if(pw.length < 6){ setFieldError('fld-su-password','err-su-password','Password must be at least 6 characters.'); hasError = true; }
+
+  if(!confirm){ setFieldError('fld-su-confirm','err-su-confirm','Please confirm your password.'); hasError = true; }
+  else if(pw && pw !== confirm){ setFieldError('fld-su-confirm','err-su-confirm','Passwords do not match.'); hasError = true; }
+
+  if(hasError){
+    gsap.fromTo('#panel-signup form', {x:-6}, {x:0, duration:0.4, ease:'elastic.out(1,0.4)'});
+    return;
+  }
+
+  document.getElementById('si-email').value = email;
+  document.getElementById('signupForm').reset();
+  setTab('signin');
+});
+
+/* ---------- generic scroll reveals ---------- */
+ScrollTrigger.batch('.reveal', {
+  start:'top 92%',
+  onEnter: batch => gsap.to(batch, {opacity:1, y:0, duration:0.5, stagger:0.06, ease:'power2.out'})
+});
+
+/* ---------- counters ---------- */
+document.querySelectorAll('.counter').forEach(el=>{
+  ScrollTrigger.create({
+    trigger: el, start:'top 95%', once:true,
+    onEnter: ()=> gsap.to({v:0}, {v:parseInt(el.dataset.target), duration:1.6, ease:'power1.out', onUpdate:function(){ el.textContent = Math.round(this.targets()[0].v).toLocaleString('en-IN'); }})
+  });
+});
+
+/* ---------- entrance ---------- */
+gsap.set('.auth-shell', {opacity:0, y:30, scale:0.97});
+gsap.to('.auth-shell', {opacity:1, y:0, scale:1, duration:0.9, ease:'back.out(1.2)', delay:0.1});
+
+function error(el){
+  /* Tell the 404 page exactly which section this link lives in (same
+     pattern used by the buttons on other pages), instead of falling back to
+     document.referrer (no hash) + a raw saved scroll pixel that can go stale
+     if the page hasn't finished loading yet. */
+  try {
+    var node = el, anchorId = null;
+    while (node && node !== document.body) {
+      if (node.id) { anchorId = node.id; break; }
+      node = node.parentElement;
+    }
+    if (anchorId) {
+      var page = location.pathname.split('/').pop() || 'index.html';
+      sessionStorage.setItem('stackly_return', page + '#' + anchorId);
+    }
+  } catch(e){}
+  window.location.href="404.html";
+}
+window.error = error;
+
+/* ---------- Land exactly where the visitor left off (reload / return-from-error) — instantly, no visible scrolling ---------- */
+(function(){
+  var returnHash = window.__stacklyReturnHash || null;
+  var restoreY = (typeof window.__stacklyRestoreY === 'number') ? window.__stacklyRestoreY : null;
+  window.__stacklyReturnHash = null;
+  window.__stacklyRestoreY = null;
+  if (!returnHash && restoreY === null) return;
+
+  function revealAll(){
+    document.querySelectorAll('.reveal').forEach(function(el){
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    });
+    document.querySelectorAll('[style*="opacity: 0"], [style*="opacity:0"]').forEach(function(el){
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    });
+  }
+
+  function computeTarget(){
+    /* Reveal first, then measure — a still-hidden .reveal section sits offset
+       by its entrance transform, which threw the measurement off before. */
+    revealAll();
+    if (typeof ScrollTrigger !== 'undefined') ScrollTrigger.refresh();
+    if (returnHash) {
+      var el = document.querySelector(returnHash);
+      return el ? (el.getBoundingClientRect().top + window.pageYOffset - 90) : null;
+    }
+    return restoreY;
+  }
+
+  function applyRestore(){
+    var target = computeTarget();
+    if (target === null) return;
+    window.scrollTo({top: Math.max(target, 0), behavior:'auto'});
+  }
+
+  applyRestore();
+  /* A slow first-ever load (cold CDN edge / uncached images+fonts on a fresh
+     GitHub Pages visit) can keep shifting the layout well after this point —
+     single checks on 'load'/'fonts.ready' don't always land after it settles.
+     Keep re-snapping to the target for a couple of seconds and stop on its own
+     once the position holds steady twice in a row, so this self-corrects
+     regardless of how long assets take to finish on that particular visit. */
+  var attempts = 0, lastTarget = null, stableCount = 0;
+  var poll = setInterval(function(){
+    attempts++;
+    var t = computeTarget();
+    if (t !== null) {
+      stableCount = (lastTarget !== null && Math.abs(t - lastTarget) < 2) ? stableCount + 1 : 0;
+      lastTarget = t;
+      window.scrollTo({top: Math.max(t, 0), behavior:'auto'});
+    }
+    if (stableCount >= 2 || attempts >= 24) clearInterval(poll);
+  }, 220);
+  window.addEventListener('load', applyRestore);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(applyRestore);
+  }
+})();
+});
+</script>
+</body>
+</html>

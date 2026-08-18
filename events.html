@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* Keep this page exactly where the visitor left it — on reload, on browser
+   back/forward, and when coming back from an error page. A fresh click on a
+   header menu or quick link always starts at the hero, never a saved section.
+   Browser scroll-restoration is switched off so this script is the only thing
+   that moves the page, and it always does it instantly (no visible scrolling). */
+(function(){
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  var pageKey = 'stackly_scroll::' + location.pathname;
+  var navEntry = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || null;
+  var navType = navEntry ? navEntry.type : (performance.navigation ? (performance.navigation.type === 1 ? 'reload' : performance.navigation.type === 2 ? 'back_forward' : 'navigate') : 'navigate');
+  if (location.hash && location.hash.length > 1) {
+    window.__stacklyReturnHash = location.hash;
+    history.replaceState(null, '', location.pathname + location.search);
+  } else if (navType === 'reload' || navType === 'back_forward' || sessionStorage.getItem('stackly_forceRestore')) {
+    sessionStorage.removeItem('stackly_forceRestore');
+    var savedY = sessionStorage.getItem(pageKey);
+    if (savedY !== null) window.__stacklyRestoreY = parseFloat(savedY);
+  } else {
+    /* Fresh click on a header menu / quick link — always start at the hero,
+       never at whatever section was scrolled to last time on this page. */
+    sessionStorage.removeItem(pageKey);
+  }
+  var saveScroll = function(){ sessionStorage.setItem(pageKey, window.scrollY); };
+  var ticking = false;
+  window.addEventListener('scroll', function(){
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(function(){ saveScroll(); ticking = false; });
+    }
+  }, {passive:true});
+  window.addEventListener('pagehide', saveScroll);
+  window.addEventListener('beforeunload', saveScroll);
+})();
+</script>
+<title>Events — Stackly | Discover. Book. Experience.</title>
+<meta name="description" content="Browse live concerts, comedy shows, sports, workshops, conferences and cultural events happening across India on Stackly.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+<style>
+/* ===================== TOKENS ===================== */
+:root{
+  --royal:#2563EB;
+  --indigo:#312E81;
+  --cyan:#06B6D4;
+  --violet:#7C3AED;
+  --sky:#38BDF8;
+  --soft-blue:#EFF6FF;
+  --white:#FFFFFF;
+  --slate:#0F172A;
+  --slate-2:#1E293B;
+  --slate-mute:#64748B;
+  --line:#E2E8F0;
+  --grad-primary: linear-gradient(120deg,#2563EB 0%, #06B6D4 100%);
+  --grad-accent: linear-gradient(120deg,#4F46E5 0%, #7C3AED 100%);
+  --grad-dark: linear-gradient(180deg,#0F172A 0%, #1E1B4B 100%);
+  --shadow-sm: 0 2px 8px rgba(15,23,42,0.06);
+  --shadow-md: 0 8px 24px rgba(15,23,42,0.09);
+  --shadow-lg: 0 24px 60px rgba(37,99,235,0.16);
+  --radius: 20px;
+  --radius-sm: 12px;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;overflow-x:hidden;width:100%;}
+body{
+  font-family:var(--font-body);
+  color:var(--slate);
+  background:var(--white);
+  line-height:1.5;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;display:block;}
+a{text-decoration:none;color:inherit;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;}
+ul{list-style:none;}
+input,select{font-family:inherit;}
+.container{max-width:1760px;margin:0 auto;padding:0 40px;}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;line-height:1.1;letter-spacing:-0.01em;}
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:12px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--royal);
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-weight:500;
+}
+.eyebrow::before{content:'';width:20px;height:1px;background:var(--royal);}
+.section{padding:100px 0;}
+.section-head{max-width:640px;margin-bottom:56px;}
+.section-head h2{font-size:clamp(28px,4vw,42px);margin-top:14px;color:var(--slate);}
+.section-head p{margin-top:14px;color:var(--slate-mute);font-size:16px;}
+.section-head.center{margin-left:auto;margin-right:auto;text-align:center;}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:15px 28px;border-radius:100px;font-weight:600;font-size:15px;
+  transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease;
+  white-space:nowrap;
+}
+.btn-primary{background:var(--grad-primary);color:#fff;box-shadow:0 10px 24px rgba(37,99,235,.28);}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(37,99,235,.36);}
+.btn-outline{border:1.5px solid var(--line);color:var(--slate);background:#fff;}
+.btn-outline:hover{border-color:var(--royal);color:var(--royal);transform:translateY(-3px);}
+.btn-ghost{color:var(--white);border:1.5px solid rgba(255,255,255,.35);}
+.btn-ghost:hover{border-color:#fff;transform:translateY(-3px);}
+.btn-sm{padding:10px 20px;font-size:13px;}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;font-size:12px;font-weight:600;}
+.reveal{opacity:0;transform:translateY(40px);}
+
+/* ===================== HEADER ===================== */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  padding:18px 0;
+  background:#fff;
+  box-shadow:0 2px 18px rgba(15,23,42,.07);
+  transition:padding .4s ease, box-shadow .4s ease;
+}
+header.scrolled{
+  padding:12px 0;
+  box-shadow:0 6px 28px rgba(15,23,42,.12);
+}
+.nav-wrap{display:flex;align-items:center;justify-content:space-between;gap:24px;}
+.logo{display:flex;align-items:center;gap:2px;font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--slate);}
+.logo img{height:32px;width:auto;display:block;}
+header.scrolled .logo{color:var(--slate);}
+.logo .mark{
+  width:36px;height:36px;border-radius:10px;background:var(--grad-primary);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;
+  transform:rotate(-6deg);
+}
+.nav-links{display:flex;align-items:center;gap:36px;}
+.nav-links a{
+  font-size:14.5px;font-weight:600;color:var(--slate-2);position:relative;padding:6px 0;
+}
+.nav-links a::after{
+  content:'';position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--grad-primary);
+  transition:width .3s ease;
+}
+.nav-links a:hover::after,.nav-links a.active::after{width:100%;}
+.nav-links a.active{color:var(--royal);}
+.nav-right{display:flex;align-items:center;gap:14px;}
+.hamburger{display:none;flex-direction:column;gap:5px;width:30px;height:24px;justify-content:center;}
+.hamburger span{display:block;height:2px;width:100%;background:var(--slate);border-radius:2px;transition:all .35s ease;}
+.mobile-nav{
+  position:fixed;top:0;right:-340px;height:100vh;width:min(320px,84vw);background:#fff;z-index:1200;
+  box-shadow:-10px 0 40px rgba(15,23,42,.16);transition:right .45s cubic-bezier(.2,.8,.2,1);
+  padding:32px 28px;display:flex;flex-direction:column;gap:8px;
+}
+.mobile-nav.open{right:0;}
+.mobile-nav a{padding:14px 4px;font-weight:600;font-size:16px;border-bottom:1px solid var(--line);color:var(--slate-2);position:relative;}
+.mobile-nav a.active{color:var(--royal);}
+.mobile-nav a.active::after{content:'';position:absolute;left:4px;bottom:10px;height:2px;width:28px;background:var(--grad-primary);border-radius:2px;}
+.mobile-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:1100;opacity:0;pointer-events:none;transition:opacity .4s ease;}
+.mobile-overlay.open{opacity:1;pointer-events:auto;}
+.mobile-close{align-self:flex-end;width:36px;height:36px;display:flex;align-items:center;justify-content:center;}
+
+/* ===================== HERO ===================== */
+.hero{
+  position:relative;padding:150px 0 90px;background:var(--grad-dark);color:#fff;overflow:hidden;
+  min-height:100vh;display:flex;align-items:center;
+}
+.hero .container{width:100%;}
+.hero-blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;z-index:0;}
+.blob-1{width:520px;height:520px;background:var(--royal);top:-160px;right:-120px;}
+.blob-2{width:400px;height:400px;background:var(--violet);bottom:-160px;left:-80px;}
+.blob-3{width:280px;height:280px;background:var(--cyan);top:40%;left:44%;opacity:.25;}
+.particle{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);z-index:1;}
+.hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:1.1fr .9fr;gap:60px;align-items:center;}
+.hero-copy .eyebrow{color:var(--sky);}
+.hero-copy .eyebrow::before{background:var(--sky);}
+.hero-copy h1{font-size:clamp(38px,5.4vw,64px);margin-top:18px;color:#fff;}
+.hero-copy h1 .line{display:block;overflow:hidden;}
+.hero-copy h1 .line span{display:inline-block;}
+.hero-copy p{margin-top:20px;font-size:18px;color:rgba(255,255,255,.72);max-width:480px;}
+.hero-ctas{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap;}
+.hero-search{
+  margin-top:44px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
+  border-radius:20px;padding:20px;backdrop-filter:blur(6px);
+}
+.hero-filters{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;}
+.hero-filters select{
+  padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.08);color:#fff;font-size:13px;font-weight:600;outline:none;
+}
+.hero-filters select option{color:#0F172A;}
+.hero-filters .btn{padding:12px 22px;}
+.hero-visual{position:relative;z-index:2;}
+.hero-visual .img-wrap{border-radius:24px;overflow:hidden;position:relative;box-shadow:var(--shadow-lg);}
+.hero-visual img{width:100%;height:clamp(300px,36vw,440px);object-fit:cover;}
+.hero-visual .img-wrap::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,0) 40%,rgba(15,23,42,.55) 100%);}
+.float-card{
+  position:absolute;background:#fff;border-radius:16px;padding:14px 16px;box-shadow:var(--shadow-lg);
+  display:flex;align-items:center;gap:12px;min-width:200px;color:var(--slate);
+}
+.float-card .fc-cat{width:44px;height:44px;border-radius:10px;flex-shrink:0;background:var(--grad-primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;}
+.float-card .fc-title{font-weight:700;font-size:13.5px;}
+.float-card .fc-meta{font-size:11.5px;color:var(--slate-mute);margin-top:2px;}
+.float-card .fc-price{font-size:12px;font-weight:700;color:var(--royal);margin-top:4px;}
+.float-1{top:-24px;left:-30px;}
+.float-2{bottom:60px;right:-36px;}
+.float-3{bottom:-30px;left:20px;}
+
+/* ===================== TICKET CARD MOTIF ===================== */
+.ticket-card.hidden-card{display:none;}
+.ticket-card{
+  position:relative;background:#fff;border-radius:18px;overflow:hidden;box-shadow:var(--shadow-sm);
+  border:1px solid var(--line);transition:transform .4s cubic-bezier(.2,.8,.2,1), box-shadow .4s ease;
+}
+.ticket-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-lg);}
+.ticket-media{position:relative;height:190px;overflow:hidden;}
+.ticket-media img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.8,.2,1);}
+.ticket-card:hover .ticket-media img{transform:scale(1.08);}
+.ticket-badge{position:absolute;top:12px;left:12px;padding:5px 12px;border-radius:100px;font-size:11px;font-weight:700;color:#fff;letter-spacing:.02em;}
+.badge-trending{background:linear-gradient(120deg,#F97316,#EF4444);}
+.badge-selling{background:linear-gradient(120deg,#7C3AED,#DB2777);}
+.badge-few{background:linear-gradient(120deg,#DC2626,#B91C1C);}
+.badge-new{background:var(--grad-primary);}
+.ticket-cat{position:absolute;bottom:12px;left:12px;background:rgba(15,23,42,.72);color:#fff;font-size:10.5px;font-weight:600;padding:4px 10px;border-radius:100px;backdrop-filter:blur(4px);}
+.ticket-body{padding:18px 18px 20px;position:relative;}
+.ticket-body h4{font-size:16.5px;margin-bottom:8px;}
+.ticket-meta{font-size:12.5px;color:var(--slate-mute);display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+.ticket-perf{
+  position:relative;border-top:1.5px dashed var(--line);margin:0 -18px;padding:14px 18px 0;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.ticket-perf::before,.ticket-perf::after{
+  content:'';position:absolute;top:-8px;width:16px;height:16px;border-radius:50%;background:var(--white);border:1.5px solid var(--line);
+}
+.ticket-perf::before{left:-8px;}
+.ticket-perf::after{right:-8px;}
+.ticket-price{font-size:11px;color:var(--slate-mute);}
+.ticket-price b{display:block;font-size:16px;color:var(--slate);font-family:var(--font-display);}
+.book-btn{padding:9px 18px;border-radius:100px;background:var(--slate);color:#fff;font-size:12.5px;font-weight:700;transition:background .3s ease, transform .3s ease;}
+.book-btn:hover{background:var(--royal);transform:translateY(-2px);}
+
+/* grids */
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:20px;}
+
+/* ===================== CATEGORIES ===================== */
+.cat-card{
+  position:relative;border-radius:18px;overflow:hidden;height:220px;cursor:pointer;
+}
+.cat-card img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.8,.2,1);}
+.cat-card::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,0) 30%,rgba(15,23,42,.82) 100%);transition:opacity .4s ease;}
+.cat-card:hover img{transform:scale(1.12) rotate(1deg);}
+.cat-label{position:absolute;left:18px;bottom:16px;z-index:2;color:#fff;}
+.cat-label .icon{font-size:22px;margin-bottom:6px;display:block;transform:translateY(0);transition:transform .4s ease;}
+.cat-card:hover .icon{transform:translateY(-6px);}
+.cat-label h4{font-size:15.5px;font-weight:700;}
+.cat-label span{font-size:11.5px;opacity:0;max-height:0;display:block;transition:opacity .35s ease;color:rgba(255,255,255,.8);}
+.cat-card:hover .cat-label span{opacity:1;}
+.explore-all{display:flex;justify-content:center;margin-top:44px;}
+
+/* ===================== TRAIN ROUTE ANIMATION ===================== */
+.train-route{position:relative;height:40px;margin-bottom:36px;overflow:hidden;}
+.route-line{position:absolute;inset:0;width:100%;height:100%;}
+.route-line line{stroke:var(--line);stroke-width:2;}
+.train-track{position:absolute;top:50%;left:0;transform:translate(-10%,-50%);animation:trainGo 9s linear infinite;}
+.train-emoji{display:inline-block;font-size:26px;filter:drop-shadow(0 4px 8px rgba(37,99,235,.35));}
+@keyframes trainGo{
+  0%{transform:translate(-10%,-50%);}
+  100%{transform:translate(1120px,-50%);}
+}
+@media (max-width:768px){
+.container{padding:0 20px;}
+  @keyframes trainGo{
+    0%{transform:translate(-10%,-50%);}
+    100%{transform:translate(340px,-50%);}
+  }
+}
+
+/* ===================== CITY DISCOVERY ===================== */
+.city-card{position:relative;border-radius:18px;overflow:hidden;height:260px;}
+.city-card img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.2,.8,.2,1);}
+.city-card:hover img{transform:scale(1.1);}
+.city-card::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,.05) 20%,rgba(15,23,42,.85) 100%);}
+.city-info{position:absolute;left:18px;bottom:16px;z-index:2;color:#fff;}
+.city-info h4{font-size:19px;}
+.city-info span{font-size:12px;opacity:.85;}
+.city-card.hq::before{
+  content:'HQ CITY';position:absolute;top:14px;right:14px;z-index:3;background:var(--grad-accent);
+  color:#fff;font-size:10px;font-weight:700;padding:5px 10px;border-radius:100px;letter-spacing:.04em;
+}
+
+/* ===================== TABS (Upcoming) ===================== */
+.tabs{display:flex;gap:8px;margin-bottom:36px;background:var(--soft-blue);padding:6px;border-radius:100px;width:fit-content;}
+.tab-btn{padding:11px 24px;border-radius:100px;font-weight:700;font-size:13.5px;color:var(--slate-mute);transition:all .35s ease;}
+.tab-btn.active{background:var(--grad-primary);color:#fff;box-shadow:0 8px 18px rgba(37,99,235,.3);}
+.tab-panel{display:none;}
+.tab-panel.active{display:grid;}
+
+/* ===================== FEATURED EVENT ===================== */
+.featured{background:var(--slate);color:#fff;border-radius:28px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;}
+.featured-img{position:relative;height:100%;min-height:460px;}
+.featured-img img{width:100%;height:100%;object-fit:cover;}
+.featured-info{padding:52px;display:flex;flex-direction:column;justify-content:center;}
+.featured-info .eyebrow{color:var(--sky);}
+.featured-info .eyebrow::before{background:var(--sky);}
+.featured-info h3{font-size:clamp(26px,3vw,34px);margin:14px 0 18px;}
+.f-meta{display:flex;flex-direction:column;gap:10px;font-size:14.5px;color:rgba(255,255,255,.78);margin-bottom:20px;}
+.f-price{font-size:26px;font-family:var(--font-display);font-weight:700;color:#fff;margin-bottom:24px;}
+.f-price span{font-size:13px;color:rgba(255,255,255,.6);font-weight:400;display:block;margin-bottom:4px;}
+.f-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px;}
+.f-icon-btn{width:46px;height:46px;border-radius:100px;border:1.5px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;transition:all .3s ease;}
+.f-icon-btn:hover{border-color:#fff;background:rgba(255,255,255,.08);}
+.f-extra{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-top:24px;border-top:1px solid rgba(255,255,255,.14);}
+.f-extra div span{display:block;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.f-extra div b{font-size:14px;font-weight:600;}
+
+/* ===================== BOOKING ===================== */
+.booking-wrap{display:grid;grid-template-columns:1.3fr .9fr;gap:32px;align-items:start;}
+.flow-steps{display:flex;flex-wrap:wrap;gap:0;margin-bottom:40px;}
+.flow-step{display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:700;color:var(--slate-mute);}
+.flow-step .num{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;}
+.flow-step.done .num{background:var(--grad-primary);color:#fff;border:none;}
+.flow-step.done{color:var(--slate);}
+.flow-arrow{width:34px;text-align:center;color:var(--line);font-size:14px;}
+.ticket-type-card{
+  display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border:1.5px solid var(--line);
+  border-radius:16px;margin-bottom:14px;transition:border-color .3s ease;
+}
+.ticket-type-card.selected{border-color:var(--royal);background:var(--soft-blue);}
+.tt-left h4{font-size:15.5px;margin-bottom:4px;}
+.tt-left span{font-size:12.5px;color:var(--slate-mute);}
+.tt-price{font-family:var(--font-display);font-weight:700;font-size:17px;margin-right:20px;}
+.qty-control{display:flex;align-items:center;gap:12px;}
+.qty-control button{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--line);font-size:16px;font-weight:700;color:var(--slate);}
+.qty-control button:hover{border-color:var(--royal);color:var(--royal);}
+.qty-control span{min-width:16px;text-align:center;font-weight:700;}
+.summary-card{background:var(--soft-blue);border-radius:20px;padding:28px;position:sticky;top:110px;}
+.summary-card h4{font-size:17px;margin-bottom:20px;}
+.summary-row{display:flex;justify-content:space-between;font-size:14px;color:var(--slate-mute);margin-bottom:12px;}
+.summary-row.total{border-top:1.5px dashed var(--line);margin-top:14px;padding-top:14px;font-weight:700;color:var(--slate);font-size:16px;}
+.pay-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:22px 0;}
+.pay-opt{padding:12px;border-radius:10px;border:1.5px solid var(--line);text-align:center;font-size:12.5px;font-weight:700;background:#fff;transition:all .3s ease;}
+.pay-opt.active{border-color:var(--royal);color:var(--royal);background:#fff;box-shadow:0 4px 14px rgba(37,99,235,.16);}
+
+/* ===================== DIGITAL TICKET ===================== */
+.dticket{
+  background:var(--slate);border-radius:24px;color:#fff;display:grid;grid-template-columns:1fr auto;overflow:hidden;
+  position:relative;box-shadow:var(--shadow-lg);
+}
+.dticket-main{padding:44px;}
+.dticket-main .conf{color:var(--cyan);font-weight:700;font-size:14px;margin-bottom:6px;}
+.dticket-main h3{font-size:26px;margin-bottom:22px;}
+.dt-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 28px;margin-bottom:28px;}
+.dt-grid div span{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.45);margin-bottom:5px;}
+.dt-grid div b{font-size:14.5px;font-weight:600;}
+.dt-actions{display:flex;gap:12px;flex-wrap:wrap;}
+.dticket-stub{
+  background:rgba(255,255,255,.06);border-left:2px dashed rgba(255,255,255,.25);
+  padding:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;width:220px;
+}
+.qr-box{width:130px;height:130px;background:#fff;border-radius:12px;padding:8px;}
+.qr-box svg{width:100%;height:100%;}
+.dticket-stub .bid{font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.6);letter-spacing:.04em;}
+
+/* ===================== HOST/ORGANIZER ===================== */
+.host-section{background:var(--soft-blue);border-radius:28px;padding:60px;display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center;}
+.feature-list{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0 32px;}
+.feature-item{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;}
+.feature-item .dot{width:8px;height:8px;border-radius:50%;background:var(--grad-primary);flex-shrink:0;}
+.host-img{border-radius:20px;overflow:hidden;box-shadow:var(--shadow-md);}
+.host-img img{width:100%;height:420px;object-fit:cover;}
+
+/* ===================== CITY STRIP ===================== */
+.city-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;}
+.city-tile{position:relative;display:block;border-radius:16px;overflow:hidden;height:150px;box-shadow:var(--shadow-sm);}
+.city-tile img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease;}
+.city-tile:hover img{transform:scale(1.08);}
+.city-tile::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,0) 30%,rgba(15,23,42,.85) 100%);}
+.city-tile span{position:absolute;left:14px;bottom:12px;z-index:2;color:#fff;font-weight:700;font-size:14.5px;display:flex;flex-direction:column;gap:2px;}
+.city-tile span em{font-style:normal;font-weight:500;font-size:11px;color:rgba(255,255,255,.75);}
+
+/* ===================== TRUST STRIP ===================== */
+.trust-strip{padding:56px 0;background:var(--slate);}
+.trust-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;}
+.trust-grid > div{display:flex;align-items:flex-start;gap:14px;}
+.trust-grid span{font-size:26px;flex-shrink:0;}
+.trust-grid b{color:#fff;font-size:15px;display:block;margin-bottom:4px;}
+.trust-grid p{color:rgba(255,255,255,.6);font-size:13px;}
+
+/* ===================== SECTION BG IMAGE ===================== */
+.host-cta-section{position:relative;overflow:hidden;}
+.section-bg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.07;z-index:0;}
+.host-cta-section .container{position:relative;z-index:1;}
+
+/* ===================== POPULAR VENUES ===================== */
+.venue-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+.venue-card{border-radius:18px;overflow:hidden;box-shadow:var(--shadow-sm);background:#fff;border:1px solid var(--line);transition:transform .35s ease, box-shadow .35s ease;}
+.venue-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-md);}
+.venue-card img{width:100%;height:150px;object-fit:cover;}
+.venue-info{padding:16px 18px;}
+.venue-info h4{font-size:14.5px;margin-bottom:4px;}
+.venue-info span{font-size:12px;color:var(--slate-mute);}
+
+/* ===================== FAQ ===================== */
+.faq-list{max-width:760px;margin:0 auto;}
+.faq-item{border-bottom:1px solid var(--line);}
+.faq-q{width:100%;text-align:left;padding:22px 4px;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:15.5px;color:var(--slate);}
+.faq-q .plus{font-size:20px;color:var(--royal);transition:transform .35s ease;flex-shrink:0;margin-left:16px;}
+.faq-item.open .faq-q .plus{transform:rotate(45deg);}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease;}
+.faq-a p{padding:0 4px 22px;color:var(--slate-mute);font-size:14px;line-height:1.65;}
+
+/* ===================== HOW IT WORKS ===================== */
+.steps-wrap{position:relative;}
+.step-row{display:grid;grid-template-columns:auto 1fr;gap:28px;padding:32px 0;border-bottom:1px solid var(--line);}
+.step-row:last-child{border-bottom:none;}
+.step-num{font-family:var(--font-display);font-size:44px;font-weight:700;background:var(--grad-primary);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.step-row h4{font-size:19px;margin-bottom:8px;}
+.step-row p{color:var(--slate-mute);font-size:14.5px;max-width:520px;}
+
+/* ===================== BLOG ===================== */
+.blog-card{border-radius:18px;overflow:hidden;border:1px solid var(--line);}
+.blog-img{height:190px;overflow:hidden;}
+.blog-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease;}
+.blog-card:hover .blog-img img{transform:scale(1.08);}
+.blog-body{padding:20px;}
+.blog-cat{font-size:11px;font-weight:700;color:var(--royal);text-transform:uppercase;letter-spacing:.04em;}
+.blog-body h4{font-size:16px;margin:10px 0 8px;}
+.blog-body p{font-size:13.5px;color:var(--slate-mute);margin-bottom:14px;}
+.blog-meta{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--slate-mute);}
+.read-more{color:var(--royal);font-weight:700;}
+
+/* ===================== NEWSLETTER ===================== */
+.newsletter{background:var(--grad-accent);border-radius:28px;padding:64px;text-align:center;color:#fff;position:relative;overflow:hidden;}
+.newsletter h2{font-size:clamp(26px,3.4vw,38px);}
+.newsletter p{margin:14px auto 30px;max-width:480px;color:rgba(255,255,255,.85);}
+.nl-form{display:flex;gap:10px;max-width:440px;margin:0 auto;}
+.nl-form input{flex:1;padding:15px 20px;border-radius:100px;border:none;outline:none;font-size:14.5px;}
+.nl-form button{padding:15px 26px;border-radius:100px;background:var(--slate);color:#fff;font-weight:700;font-size:14.5px;transition:transform .3s ease;}
+.nl-form button:hover{transform:translateY(-2px);}
+.nl-msg{margin-top:14px;font-size:13px;color:#fff;min-height:18px;}
+
+/* ===================== FOOTER ===================== */
+footer{background:var(--slate);color:rgba(255,255,255,.7);padding:80px 0 30px;}
+.footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1.2fr;gap:32px;padding-bottom:50px;border-bottom:1px solid rgba(255,255,255,.1);}
+.footer-grid h5{color:#fff;font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:20px;}
+.footer-grid ul li{margin-bottom:12px;font-size:14px;}
+.footer-grid ul li a:hover{color:#fff;}
+.footer-brand p{font-size:14px;margin:16px 0 22px;line-height:1.7;color:rgba(255,255,255,.55);}
+.social-row{display:flex;gap:10px;}
+.social-icon{
+  width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;
+  transition:all .35s ease;color:#fff;
+}
+.social-icon:hover{transform:translateY(-4px);}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-top:26px;font-size:13px;}
+.footer-bottom .links{display:flex;gap:18px;flex-wrap:wrap;}
+/* ===================== RESPONSIVE ===================== */
+@media (max-width:1024px){
+  .grid-4{grid-template-columns:repeat(2,1fr);}
+  .grid-5{grid-template-columns:repeat(3,1fr);}
+  .hero-grid{grid-template-columns:1fr;}
+  .hero-visual{order:-1;}
+  .float-card{display:none;}
+  .featured{grid-template-columns:1fr;}
+  .booking-wrap{grid-template-columns:1fr;}
+  .host-section{grid-template-columns:1fr;padding:40px;}
+  .footer-grid{grid-template-columns:1fr 1fr;}
+  .nav-links{display:none;}
+  .hamburger{display:flex;}
+  .city-strip{grid-template-columns:repeat(3,1fr);}
+  .trust-grid{grid-template-columns:1fr 1fr;gap:24px;}
+  .venue-grid{grid-template-columns:1fr 1fr;}
+}
+@media (max-width:768px){
+  .grid-3{grid-template-columns:1fr 1fr;}
+  .grid-5{grid-template-columns:1fr 1fr;}
+  .section{padding:64px 0;}
+  .hero{padding:112px 0 56px;min-height:0;}
+  .hero-visual{display:none;}
+  .hero-filters{grid-template-columns:1fr 1fr;}
+  .dticket{grid-template-columns:1fr;}
+  .dticket-stub{border-left:none;border-top:2px dashed rgba(255,255,255,.25);width:100%;flex-direction:row;justify-content:center;}
+  .f-extra{grid-template-columns:1fr;}
+  .nav-right .btn-primary.btn-sm{display:none;}
+
+  /* ---- Filter bar: chips scroll in one row, selects stack full-width ---- */
+  .filter-bar{flex-direction:column;align-items:stretch;}
+  .chip-row{
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    padding-bottom:6px;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .chip-row::-webkit-scrollbar{display:none;}
+  .chip{flex:0 0 auto;}
+  .filter-selects{flex-direction:column;width:100%;}
+  .filter-selects select{width:100%;}
+}
+@media (max-width:600px){
+  .grid-4,.grid-3,.grid-5{grid-template-columns:1fr 1fr;}
+  .feature-list{grid-template-columns:1fr;}
+  .hero-filters{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr 1fr;}
+  .city-strip{grid-template-columns:1fr 1fr;}
+  .trust-grid{grid-template-columns:1fr;gap:20px;}
+  .venue-grid{grid-template-columns:1fr;}
+}
+@media (max-width:425px){
+  .grid-4,.grid-3,.grid-5{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr;}
+  .footer-bottom{flex-direction:column;align-items:flex-start;}
+  .host-section{padding:28px;}
+  .newsletter{padding:40px 24px;}
+  .nl-form{flex-direction:column;}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:0.01ms !important;transition-duration:0.01ms !important;}
+}
+:focus-visible{outline:2.5px solid var(--royal);outline-offset:2px;}
+
+/* ===================== PAGE HERO ===================== */
+.page-hero{position:relative;padding:150px 0 70px;background:var(--grad-dark);color:#fff;overflow:hidden;}
+.page-hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:.34;}
+.page-hero::before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(160deg,rgba(15,23,42,.92) 10%,rgba(30,27,75,.86) 55%,rgba(37,99,235,.5) 100%);}
+.page-hero .hero-blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;z-index:1;}
+.page-hero .crumb{font-family:var(--font-mono);font-size:12.5px;color:rgba(255,255,255,.55);margin-bottom:14px;position:relative;z-index:2;}
+.page-hero .crumb a{color:var(--sky);}
+.page-hero h1{position:relative;z-index:2;font-size:clamp(34px,5vw,54px);color:#fff;}
+.page-hero p{position:relative;z-index:2;margin-top:14px;color:rgba(255,255,255,.72);font-size:16.5px;max-width:560px;}
+
+/* ---- Hero stats: grid-based so wrapped items stay left-aligned in columns ---- */
+.page-hero-stats{
+  position:relative;z-index:2;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(110px,1fr));
+  gap:20px 28px;
+  margin-top:32px;
+  max-width:420px;
+}
+.page-hero-stats div b{display:block;font-family:var(--font-display);font-size:26px;background:var(--grad-primary);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.page-hero-stats div span{font-size:12.5px;color:rgba(255,255,255,.55);}
+.page-hero-float{position:absolute;z-index:2;border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.4);border:3px solid rgba(255,255,255,.14);animation:heroFloat 6s ease-in-out infinite;}
+.page-hero-float img{width:100%;height:100%;object-fit:cover;display:block;}
+.phf-1{width:150px;height:190px;top:96px;right:9%;animation-delay:0s;}
+.phf-2{width:120px;height:150px;bottom:36px;right:24%;animation-delay:1.4s;}
+@keyframes heroFloat{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-20px) rotate(2deg);}}
+@media (max-width:1024px){.page-hero-float{display:none;}}
+
+/* ===================== EVENTS FILTER BAR ===================== */
+.filter-bar{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:space-between;
+  background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px 22px;box-shadow:var(--shadow-sm);
+  margin-bottom:40px;position:relative;z-index:5;
+}
+.chip-row{display:flex;gap:10px;flex-wrap:wrap;}
+.chip{padding:9px 18px;border-radius:100px;font-size:13px;font-weight:700;color:var(--slate-mute);background:var(--soft-blue);transition:all .3s ease;}
+.chip.active,.chip:hover{background:var(--grad-primary);color:#fff;}
+.filter-selects{display:flex;gap:10px;flex-wrap:wrap;}
+.filter-selects select{padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);font-size:13px;font-weight:600;color:var(--slate-2);background:#fff;outline:none;}
+.results-count{font-size:13px;color:var(--slate-mute);margin-bottom:24px;font-weight:600;}
+.results-count b{color:var(--slate);}
+.no-results{display:none;text-align:center;padding:60px 20px;color:var(--slate-mute);}
+.no-results.show{display:block;}
+
+/* ===================== LOAD MORE ===================== */
+.load-more-wrap{display:flex;justify-content:center;margin-top:48px;}
+
+</style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header id="siteHeader">
+  <div class="container nav-wrap">
+    <a href="index.html" class="logo"><img src="assets/stackly-logo.webp" alt="Stackly logo">Stackly</a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="categories.html">Categories</a>
+      <a href="events.html" class="active">Events</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <div class="nav-right">
+      <a href="login.html" class="btn btn-primary btn-sm">Login</a>
+      <button class="hamburger" id="hamburgerBtn" aria-label="Open menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-overlay" id="mobileOverlay"></div>
+<nav class="mobile-nav" id="mobileNav" aria-label="Mobile">
+  <button class="mobile-close" id="mobileClose" aria-label="Close menu"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <a href="index.html">Home</a>
+  <a href="about.html">About</a>
+  <a href="categories.html">Categories</a>
+  <a href="events.html" class="active">Events</a>
+  <a href="contact.html">Contact</a>
+  <a href="login.html" class="btn btn-primary" style="margin-top:16px;">Login</a>
+</nav>
+
+
+<!-- ===================== PAGE HERO ===================== -->
+<section class="page-hero">
+  <img class="page-hero-bg" src="./assets/e1.webp" alt="Crowd at a live concert with stage lights">
+  <div class="hero-blob" style="width:460px;height:460px;background:var(--royal);top:-140px;right:-100px;"></div>
+  <div class="hero-blob" style="width:340px;height:340px;background:var(--violet);bottom:-160px;left:-60px;"></div>
+  <div class="page-hero-float phf-1"><img src="./assets/a2.webp" alt="Stand-up comedy show on stage"></div>
+  <div class="page-hero-float phf-2"><img src="./assets/sports.webp" alt="Crowd cheering at a sports event"></div>
+  <div class="container">
+    <div class="crumb"><a href="index.html">Home</a> / <span>Events</span></div>
+    <h1>Every Event Worth Showing Up For</h1>
+    <p>Concerts, comedy, sports, workshops, festivals and more — browse live listings from across India and grab your tickets in a few taps.</p>
+    <div class="page-hero-stats">
+      <div><b class="counter" data-target="3200">0</b><span>Live Events</span></div>
+      <div><b class="counter" data-target="48">0</b><span>Cities Covered</span></div>
+      <div><b class="counter" data-target="12">0</b><span>Categories</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== EVENTS LISTING ===================== -->
+<section class="section" style="padding-top:70px;" id="eventsMain">
+  <div class="container">
+    <div class="filter-bar reveal">
+      <div class="chip-row" id="chipRow">
+        <button class="chip active" data-cat="All">All</button>
+        <button class="chip" data-cat="Music & Concerts">Music</button>
+        <button class="chip" data-cat="Comedy Shows">Comedy</button>
+        <button class="chip" data-cat="Sports">Sports</button>
+        <button class="chip" data-cat="Workshops">Workshops</button>
+        <button class="chip" data-cat="Conferences">Conferences</button>
+        <button class="chip" data-cat="Cultural Events">Cultural</button>
+        <button class="chip" data-cat="Food & Lifestyle">Food</button>
+      </div>
+      <div class="filter-selects">
+        <select id="citySort" aria-label="City">
+          <option value="All">All Cities</option>
+          <option>Chennai</option><option>Bengaluru</option><option>Salem</option>
+          <option>Mumbai</option><option>Coimbatore</option><option>Hyderabad</option>
+        </select>
+        <select id="priceSort" aria-label="Sort">
+          <option value="default">Sort: Recommended</option>
+          <option value="low">Price: Low to High</option>
+          <option value="high">Price: High to Low</option>
+        </select>
+      </div>
+    </div>
+    <p class="results-count reveal">Showing <b id="resultCount">0</b> events</p>
+    <div class="grid-4" id="eventsGrid">
+  <div class="ticket-card reveal" data-cat="Music &amp; Concerts" data-city="Chennai" data-price="1499">
+    <div class="ticket-media">
+      <img src="./assets/d1.webp" alt="AR Rahman Live event photo" loading="lazy">
+      <span class="ticket-badge badge-trending">Trending</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Music & Concerts</span>
+    </div>
+    <div class="ticket-body">
+      <h4>AR Rahman Live</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 24 Oct 2026</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> YMCA Grounds, Chennai</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹1,499</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal" data-cat="Comedy Shows" data-city="Bengaluru" data-price="799">
+    <div class="ticket-media">
+      <img src="./assets/a2.webp" alt="Zakir Khan Stand-Up Comedy event photo" loading="lazy">
+      <span class="ticket-badge badge-selling">Selling Fast</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Comedy Shows</span>
+    </div>
+    <div class="ticket-body">
+      <h4>Zakir Khan Stand-Up Comedy</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2 Nov 2026</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Phoenix MarketCity, Bengaluru</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹799</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal" data-cat="Cultural Events" data-city="Chennai" data-price="999">
+    <div class="ticket-media">
+      <img src="./assets/d2.webp" alt="Chennai Music Festival event photo" loading="lazy">
+      <span class="ticket-badge badge-new">New</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Cultural Events</span>
+    </div>
+    <div class="ticket-body">
+      <h4>Chennai Music Festival</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 12 Dec 2026</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Music Academy, Chennai</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹999</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal" data-cat="Sports" data-city="Mumbai" data-price="999">
+    <div class="ticket-media">
+      <img src="./assets/d4.webp" alt="IPL Fan Experience event photo" loading="lazy">
+      <span class="ticket-badge badge-few">Few Tickets Left</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><line x1="6" y1="18" x2="17" y2="7"/><path d="M15 5l4 4-2 2-4-4z"/><circle cx="5.5" cy="19.5" r="1.6"/></svg> Sports</span>
+    </div>
+    <div class="ticket-body">
+      <h4>IPL Fan Experience</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 5 Apr 2027</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Wankhede Stadium, Mumbai</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹999</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal" data-cat="Conferences" data-city="Bengaluru" data-price="2999">
+    <div class="ticket-media">
+      <img src="./assets/d5.webp" alt="Tech Conference India event photo" loading="lazy">
+      <span class="ticket-badge badge-trending">Trending</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Conferences</span>
+    </div>
+    <div class="ticket-body">
+      <h4>Tech Conference India</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 18 Nov 2026</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> BIEC, Bengaluru</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹2,999</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal" data-cat="Food &amp; Lifestyle" data-city="Coimbatore" data-price="499">
+    <div class="ticket-media">
+      <img src="./assets/d6.webp" alt="Coimbatore Food & Culture Festival event photo" loading="lazy">
+      <span class="ticket-badge badge-new">New</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M3 11h18v2a7 7 0 0 1-7 7h-4a7 7 0 0 1-7-7v-2z"/><path d="M12 3v4"/><path d="M8.5 5l1.2 2"/><path d="M15.5 5l-1.2 2"/></svg> Food & Lifestyle</span>
+    </div>
+    <div class="ticket-body">
+      <h4>Coimbatore Food & Culture Festival</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 9 Nov 2026</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Codissia Grounds, Coimbatore</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹499</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal" data-cat="Conferences" data-city="Salem" data-price="299">
+    <div class="ticket-media">
+      <img src="./assets/d7.webp" alt="Salem Startup Meetup event photo" loading="lazy">
+      <span class="ticket-badge badge-new">New</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg> Conferences</span>
+    </div>
+    <div class="ticket-body">
+      <h4>Salem Startup Meetup</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 31 Oct 2026</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> MMR Convention Hall, Salem</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹299</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal" data-cat="Cultural Events" data-city="Chennai" data-price="0">
+    <div class="ticket-media">
+      <img src="./assets/d8.webp" alt="Tamil New Year Cultural Festival event photo" loading="lazy">
+      <span class="ticket-badge badge-trending">Trending</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M12 2c2 3-2 4-2 7a2 2 0 0 0 4 0c0-3-4-4-2-7z"/><ellipse cx="12" cy="19" rx="8" ry="3"/></svg> Cultural Events</span>
+    </div>
+    <div class="ticket-body">
+      <h4>Tamil New Year Cultural Festival</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 14 Apr 2027</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Fort Grounds, Chennai</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>Free</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal" data-cat="Music &amp; Concerts" data-city="Bengaluru" data-price="2499">
+    <div class="ticket-media">
+      <img src="./assets/sunburn.webp" alt="Sunburn Arena — Bengaluru event photo" loading="lazy">
+      <span class="ticket-badge badge-trending">Trending</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg> Music & Concerts</span>
+    </div>
+    <div class="ticket-body">
+      <h4>Sunburn Arena — Bengaluru</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 14 Nov 2026</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Embassy Grounds, Bengaluru</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹2,499</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal" data-cat="Comedy Shows" data-city="Chennai" data-price="399">
+    <div class="ticket-media">
+      <img src="./assets/b4.webp" alt="Standup Central: Open Mic Night event photo" loading="lazy">
+      <span class="ticket-badge badge-new">New</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Comedy Shows</span>
+    </div>
+    <div class="ticket-body">
+      <h4>Standup Central: Open Mic Night</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 8 Nov 2026</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> The Habitat, Chennai</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹399</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal" data-cat="Workshops" data-city="Hyderabad" data-price="1999">
+    <div class="ticket-media">
+      <img src="./assets/team planning.webp" alt="UI/UX Design Bootcamp event photo" loading="lazy">
+      <span class="ticket-badge badge-selling">Selling Fast</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Workshops</span>
+    </div>
+    <div class="ticket-body">
+      <h4>UI/UX Design Bootcamp</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 22 Nov 2026</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> WeWork, Hyderabad</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹1,999</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal" data-cat="Food &amp; Lifestyle" data-city="Chennai" data-price="299">
+    <div class="ticket-media">
+      <img src="./assets/kids carnival.webp" alt="Kids Carnival & Play Fest event photo" loading="lazy">
+      <span class="ticket-badge badge-new">New</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><ellipse cx="12" cy="9" rx="6" ry="7"/><path d="M12 16c0 1.3-.6 1.7-.9 2.6-.3.8.2 1.6.9 1.4"/></svg> Food & Lifestyle</span>
+    </div>
+    <div class="ticket-body">
+      <h4>Kids Carnival & Play Fest</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 29 Nov 2026</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Express Avenue, Chennai</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹299</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal" data-cat="Sports" data-city="Salem" data-price="399">
+    <div class="ticket-media">
+      <img src="./assets/marathon.webp" alt="Marathon for a Cause — Salem event photo" loading="lazy">
+      <span class="ticket-badge badge-new">New</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Sports</span>
+    </div>
+    <div class="ticket-body">
+      <h4>Marathon for a Cause — Salem</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 6 Dec 2026</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Salem Race Track</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹399</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal" data-cat="Food &amp; Lifestyle" data-city="Hyderabad" data-price="349">
+    <div class="ticket-media">
+      <img src="./assets/hyderabad biriyani.webp" alt="Hyderabad Biryani & Food Carnival event photo" loading="lazy">
+      <span class="ticket-badge badge-trending">Trending</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M3 11h18v2a7 7 0 0 1-7 7h-4a7 7 0 0 1-7-7v-2z"/><path d="M12 3v4"/><path d="M8.5 5l1.2 2"/><path d="M15.5 5l-1.2 2"/></svg> Food & Lifestyle</span>
+    </div>
+    <div class="ticket-body">
+      <h4>Hyderabad Biryani & Food Carnival</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 20 Dec 2026</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> HITEX Grounds, Hyderabad</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹349</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal" data-cat="Cultural Events" data-city="Chennai" data-price="599">
+    <div class="ticket-media">
+      <img src="./assets/a8.webp" alt="Classical Carnatic Evening event photo" loading="lazy">
+      <span class="ticket-badge badge-new">New</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Cultural Events</span>
+    </div>
+    <div class="ticket-body">
+      <h4>Classical Carnatic Evening</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 3 Jan 2027</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Narada Gana Sabha, Chennai</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹599</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal" data-cat="Conferences" data-city="Coimbatore" data-price="1499">
+    <div class="ticket-media">
+      <img src="./assets/mic.webp" alt="Digital Marketing Summit event photo" loading="lazy">
+      <span class="ticket-badge badge-selling">Selling Fast</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Conferences</span>
+    </div>
+    <div class="ticket-body">
+      <h4>Digital Marketing Summit</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 15 Jan 2027</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Taj Vivanta, Coimbatore</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹1,499</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal" data-cat="Comedy Shows" data-city="Mumbai" data-price="899">
+    <div class="ticket-media">
+      <img src="./assets/laugh.webp" alt="Mumbai Comedy Marathon event photo" loading="lazy">
+      <span class="ticket-badge badge-trending">Trending</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg> Comedy Shows</span>
+    </div>
+    <div class="ticket-body">
+      <h4>Mumbai Comedy Marathon</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 24 Jan 2027</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> St Andrews Auditorium, Mumbai</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹899</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="no-results" id="noResults">
+      <h3 style="font-size:20px;margin-bottom:8px;">No events match those filters</h3>
+      <p>Try a different category or city.</p>
+    </div>
+    <div class="load-more-wrap reveal">
+      <button class="btn btn-outline" id="loadMoreBtn">Load More Events</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== BROWSE BY CITY ===================== -->
+<section class="section" style="padding-top:0;" id="browseByCity">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Browse By City</span>
+      <h2>Find Events Wherever You Are</h2>
+    </div>
+    <div class="city-strip">
+      <a href="404.html" onclick="error(this); return false;" class="city-tile reveal" data-city="Chennai"><img src="./assets/c1.webp" alt="Chennai skyline"><span>Chennai<em>410 events</em></span></a>
+      <a href="404.html" onclick="error(this); return false;" class="city-tile reveal" data-city="Bengaluru"><img src="./assets/c2.webp" alt="Bengaluru city"><span>Bengaluru<em>528 events</em></span></a>
+      <a href="404.html" onclick="error(this); return false;" class="city-tile reveal" data-city="Mumbai"><img src="./assets/c5.webp" alt="Mumbai skyline at dusk"><span>Mumbai<em>612 events</em></span></a>
+      <a href="404.html" onclick="error(this); return false;" class="city-tile reveal" data-city="Salem"><img src="./assets/c11.webp" alt="Salem, Tamil Nadu"><span>Salem<em>96 events</em></span></a>
+      <a href="404.html" onclick="error(this); return false;" class="city-tile reveal" data-city="Hyderabad"><img src="./assets/c4.webp" alt="Hyderabad Charminar"><span>Hyderabad<em>284 events</em></span></a>
+      <a href="404.html" onclick="error(this); return false;" class="city-tile reveal" data-city="Coimbatore"><img src="./assets/c9.webp" alt="Coimbatore city view"><span>Coimbatore<em>142 events</em></span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TRUST STRIP ===================== -->
+<section class="trust-strip reveal">
+  <div class="container">
+    <div class="trust-grid">
+      <div><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><div><b>Secure Payments</b><p>256-bit encrypted checkout on every order</p></div></div>
+      <div><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><div><b>Instant E-Tickets</b><p>QR tickets delivered straight to your inbox</p></div></div>
+      <div><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span><div><b>Verified Organizers</b><p>Every host is vetted before going live</p></div></div>
+      <div><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></span><div><b>24/7 Support</b><p>Real humans, real fast, whenever you need us</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== POPULAR VENUES ===================== -->
+<section class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Where It Happens</span>
+      <h2>Popular Venues Across India</h2>
+      <p>The stages, stadiums and halls hosting the most-booked events on Stackly right now.</p>
+    </div>
+    <div class="venue-grid">
+      <div class="venue-card reveal">
+        <img src="./assets/ymca.webp" alt="YMCA Grounds, Chennai concert venue">
+        <div class="venue-info"><h4>YMCA Grounds</h4><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Chennai · Capacity 8,000</span></div>
+      </div>
+      <div class="venue-card reveal">
+        <img src="./assets/phenonix.webp" alt="Phoenix MarketCity venue Bengaluru">
+        <div class="venue-info"><h4>Phoenix MarketCity</h4><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Bengaluru · Capacity 2,500</span></div>
+      </div>
+      <div class="venue-card reveal">
+        <img src="./assets/stadium.webp" alt="Wankhede Stadium Mumbai">
+        <div class="venue-info"><h4>Wankhede Stadium</h4><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Mumbai · Capacity 33,000</span></div>
+      </div>
+      <div class="venue-card reveal">
+        <img src="./assets/convention.webp" alt="BIEC convention centre Bengaluru">
+        <div class="venue-info"><h4>BIEC Convention Centre</h4><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Bengaluru · Capacity 5,000</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== EVENT FAQS ===================== -->
+<section class="section" style="background:var(--soft-blue);">
+  <div class="container">
+    <div class="section-head center reveal" style="margin-left:auto;margin-right:auto;">
+      <span class="eyebrow">Quick Answers</span>
+      <h2>Event Booking FAQs</h2>
+    </div>
+    <div class="faq-list reveal" id="eventsFaqList">
+      <div class="faq-item open">
+        <button class="faq-q">How quickly do I get my ticket after booking? <span class="plus">+</span></button>
+        <div class="faq-a"><p>Instantly — your digital ticket with QR code lands in your email and your Stackly account the moment payment is confirmed.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Can I filter events by budget? <span class="plus">+</span></button>
+        <div class="faq-a"><p>Yes — use the Sort dropdown above the listings to sort by price low-to-high or high-to-low.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">What happens if an event is postponed? <span class="plus">+</span></button>
+        <div class="faq-a"><p>Your existing ticket stays valid for the new date automatically — we'll email you the update, no rebooking needed.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Do I need to print my ticket? <span class="plus">+</span></button>
+        <div class="faq-a"><p>No — just show the QR code from your phone at entry. Most venues scan digital tickets directly.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== HOST CTA ===================== -->
+<section class="section host-cta-section" id="hostCta">
+  <img class="section-bg-img" src="./assets/team work.webp" alt="Organizer setting up event lighting">
+  <div class="container">
+    <div class="host-section reveal">
+      <div>
+        <span class="eyebrow">For Organizers</span>
+        <h2 style="font-size:clamp(26px,3.4vw,36px);margin-top:14px;">Don't See Your Event Listed?</h2>
+        <p style="color:var(--slate-mute);margin-top:14px;">Create your event page on Stackly in minutes and start selling tickets to millions of event-goers across India.</p>
+        <a href="404.html" onclick="error(this); return false;" class="btn btn-primary" style="margin-top:24px;">Host an Event</a>
+      </div>
+      <div class="host-img">
+        <img src="./assets/team work.webp" alt="Event organizer setting up a workshop venue">
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================== FOOTER ===================== -->
+<footer id="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="logo" style="color:#fff;"><img src="assets/stackly-logo.webp" alt="Stackly logo">Stackly</a>
+        <p>Stackly is an Indian event discovery and ticketing platform helping people discover unforgettable experiences and helping organizers sell, manage and grow their events.</p>
+        <div class="social-row">
+          <a class="social-icon" data-hover="#1877F2" href="404.html" onclick="error(this); return false;" aria-label="Facebook"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0 0 22 12"/></svg></a>
+          <a class="social-icon" data-hover="#E4405F" href="404.html" onclick="error(this); return false;" aria-label="Instagram"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c2.7 0 3.06.01 4.12.06 1.06.05 1.79.22 2.43.47.66.26 1.22.6 1.77 1.15.5.5.87 1.02 1.15 1.77.25.64.42 1.37.47 2.43.05 1.06.06 1.42.06 4.12s-.01 3.06-.06 4.12c-.05 1.06-.22 1.79-.47 2.43-.28.75-.64 1.27-1.15 1.77-.5.5-1.11.9-1.77 1.15-.64.25-1.37.42-2.43.47-1.06.05-1.42.06-4.12.06s-3.06-.01-4.12-.06c-1.06-.05-1.79-.22-2.43-.47a4.9 4.9 0 0 1-1.77-1.15 4.9 4.9 0 0 1-1.15-1.77c-.25-.64-.42-1.37-.47-2.43C2.01 15.06 2 14.7 2 12s.01-3.06.06-4.12c.05-1.06.22-1.79.47-2.43.26-.66.6-1.22 1.15-1.77A4.9 4.9 0 0 1 5.45.53C6.09.28 6.82.11 7.88.06 8.94.01 9.3 0 12 0zm0 5.4A6.6 6.6 0 1 0 12 18.6 6.6 6.6 0 0 0 12 5.4zm0 10.9a4.3 4.3 0 1 1 0-8.6 4.3 4.3 0 0 1 0 8.6zm6.9-11.15a1.54 1.54 0 1 1-3.08 0 1.54 1.54 0 0 1 3.08 0z"/></svg></a>
+          <a class="social-icon" data-hover="#0A66C2" href="404.html" onclick="error(this); return false;" aria-label="LinkedIn"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.86 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.11 20.45H3.56V9h3.55v11.45z"/></svg></a>
+          <a class="social-icon" data-hover="#0F172A" href="404.html" onclick="error(this); return false;" aria-label="X / Twitter"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.6 8.7L23.4 22h-7.1l-5.5-7.2L4.5 22H1.4l8.1-9.3L1 2h7.3l5 6.6L18.9 2zm-1.2 18h1.9L7.4 4H5.4l12.3 16z"/></svg></a>
+          <a class="social-icon" data-hover="#FF0000" href="404.html" onclick="error(this); return false;" aria-label="YouTube"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg></a>
+        </div>
+      </div>
+      <div><h5>Quick Links</h5><ul><li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="categories.html">Categories</a></li>
+        <li><a href="contact.html">Contact</a></li></ul></div>
+      <div><h5>Popular Categories</h5><ul><li><a href="404.html" onclick="error(this); return false;">Music & Concerts</a></li><li><a href="404.html" onclick="error(this); return false;">Comedy</a></li><li><a href="404.html" onclick="error(this); return false;">Sports</a></li><li><a href="404.html" onclick="error(this); return false;">Workshops</a></li><li><a href="404.html" onclick="error(this); return false;">Conferences</a></li><li><a href="404.html" onclick="error(this); return false;">Cultural Events</a></li></ul></div>
+      <div><h5>Company</h5><ul><li><a href="404.html" onclick="error(this); return false;">About Stackly</a></li><li><a href="404.html" onclick="error(this); return false;">Host an Event</a></li><li><a href="404.html" onclick="error(this); return false;">Organizer Login</a></li><li><a href="404.html" onclick="error(this); return false;">Help Center</a></li><li><a href="404.html" onclick="error(this); return false;">Privacy Policy</a></li><li><a href="404.html" onclick="error(this); return false;">Terms & Conditions</a></li></ul></div>
+      <div><h5>Contact</h5><p style="font-size:13.5px;line-height:1.7;">MMR Complex, Periyakollappatty, Chinna Thirupathi, Salem, Tamil Nadu 636008</p>
+        <p style="font-size:13.5px;margin-top:12px;">+91 98765 43210<br>hello@stackly.in</p></div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Stackly. All Rights Reserved.</span>
+      <div class="links"><a href="404.html" onclick="error(this); return false;">Privacy Policy</a><a href="404.html" onclick="error(this); return false;">Terms & Conditions</a><a href="404.html" onclick="error(this); return false;">Refund Policy</a><a href="404.html" onclick="error(this); return false;">Cookie Policy</a></div>
+    </div>
+  </div>
+</footer>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+gsap.registerPlugin(ScrollTrigger);
+
+let activeCat = 'All';
+let activeCity = 'All';
+let activeSort = 'default';
+let visibleCount = 8;
+
+function renderGrid(){
+  const cards = Array.from(document.querySelectorAll('#eventsGrid .ticket-card'));
+  const grid = document.getElementById('eventsGrid');
+  let filtered = cards.filter(c => (activeCat==='All' || c.dataset.cat===activeCat) && (activeCity==='All' || c.dataset.city===activeCity));
+  if(activeSort==='low') filtered.sort((a,b)=>a.dataset.price-b.dataset.price);
+  if(activeSort==='high') filtered.sort((a,b)=>b.dataset.price-a.dataset.price);
+  cards.forEach(c => c.classList.add('hidden-card'));
+  filtered.forEach((c, i) => {
+    grid.appendChild(c);
+    c.classList.toggle('hidden-card', i >= visibleCount);
+  });
+  document.getElementById('resultCount').textContent = filtered.length;
+  document.getElementById('noResults').classList.toggle('show', filtered.length===0);
+  document.getElementById('loadMoreBtn').style.display = (visibleCount >= filtered.length) ? 'none' : 'inline-flex';
+  gsap.fromTo('#eventsGrid .ticket-card:not(.hidden-card)', {opacity:0, y:24}, {opacity:1, y:0, stagger:0.06, duration:0.5, ease:'power2.out'});
+}
+renderGrid();
+
+document.querySelectorAll('.chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    activeCat = chip.dataset.cat;
+    visibleCount = 8;
+    renderGrid();
+  });
+});
+document.getElementById('citySort').addEventListener('change', e=>{ activeCity = e.target.value; visibleCount = 8; renderGrid(); });
+document.getElementById('priceSort').addEventListener('change', e=>{ activeSort = e.target.value; renderGrid(); });
+document.getElementById('loadMoreBtn').addEventListener('click', ()=>{ visibleCount += 8; renderGrid(); });
+
+/* ---------- counters ---------- */
+document.querySelectorAll('.counter').forEach(el=>{
+  ScrollTrigger.create({
+    trigger: el, start:'top 90%', once:true,
+    onEnter: ()=> gsap.to({v:0}, {v:parseInt(el.dataset.target), duration:1.6, ease:'power1.out', onUpdate:function(){ el.textContent = Math.round(this.targets()[0].v).toLocaleString('en-IN'); }})
+  });
+});
+
+/* ---------- FAQ ACCORDION ---------- */
+document.querySelectorAll('.faq-item').forEach(item=>{
+  const answer = item.querySelector('.faq-a');
+  if(item.classList.contains('open')) answer.style.maxHeight = answer.scrollHeight + 'px';
+  item.querySelector('.faq-q').addEventListener('click', ()=>{
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i=>{
+      i.classList.remove('open');
+      i.querySelector('.faq-a').style.maxHeight = null;
+    });
+    if(!isOpen){
+      item.classList.add('open');
+      answer.style.maxHeight = answer.scrollHeight + 'px';
+    }
+  });
+});
+
+/* ---------- HEADER SCROLL ---------- */
+const header = document.getElementById('siteHeader');
+window.addEventListener('scroll', ()=>{
+  header.classList.toggle('scrolled', window.scrollY > 40);
+});
+
+/* ---------- MOBILE NAV ---------- */
+const mobileNav = document.getElementById('mobileNav');
+const overlay = document.getElementById('mobileOverlay');
+function openNav(){ mobileNav.classList.add('open'); overlay.classList.add('open'); }
+function closeNav(){ mobileNav.classList.remove('open'); overlay.classList.remove('open'); }
+document.getElementById('hamburgerBtn').addEventListener('click', openNav);
+document.getElementById('mobileClose').addEventListener('click', closeNav);
+overlay.addEventListener('click', closeNav);
+document.querySelectorAll('.mobile-nav a').forEach(a=>a.addEventListener('click', closeNav));
+/* ---------- generic reveals ---------- */
+ScrollTrigger.batch('.reveal', {
+  start:'top 92%',
+  onEnter: batch => gsap.to(batch, {opacity:1, y:0, duration:0.5, stagger:0.06, ease:'power2.out'})
+});
+ScrollTrigger.batch('.ticket-card', {
+  start:'top 92%',
+  onEnter: batch => gsap.fromTo(batch, {opacity:0, y:30}, {opacity:1, y:0, duration:0.5, stagger:0.06, ease:'power2.out'})
+});
+
+/* ---------- pop-up entrance for every section ---------- */
+document.querySelectorAll('body > section').forEach(sec=>{
+  if(sec.classList.contains('page-hero')) return;
+  gsap.set(sec, {opacity:0, scale:0.96, y:26});
+  ScrollTrigger.create({
+    trigger: sec, start:'top 90%', once:true,
+    onEnter: ()=> gsap.to(sec, {opacity:1, scale:1, y:0, duration:0.5, ease:'power2.out'})
+  });
+});
+
+/* ---------- hero entrance ---------- */
+gsap.timeline({defaults:{ease:'power3.out'}})
+  .from('.page-hero .crumb', {opacity:0, y:14, duration:0.5})
+  .from('.page-hero h1', {opacity:0, y:24, duration:0.7}, '-=0.2')
+  .from('.page-hero p', {opacity:0, y:16, duration:0.6}, '-=0.4')
+  .from('.page-hero-stats > div', {opacity:0, y:16, stagger:0.1, duration:0.5}, '-=0.3');
+gsap.to('.page-hero .hero-blob', {x:20, y:14, duration:8, yoyo:true, repeat:-1, ease:'sine.inOut'}); 
+function error(el){
+  /* Tell the 404 page exactly which section this button lives in (same
+     pattern already used by hero search / newsletter / contact), instead of
+     falling back to document.referrer (no hash) + a raw saved scroll pixel
+     that goes stale if the page hasn't finished loading yet — that fallback
+     was the real reason returning from Book Now etc. landed on the hero the
+     first time and only self-corrected on a second try. */
+  try {
+    var node = el, anchorId = null;
+    while (node && node !== document.body) {
+      if (node.id) { anchorId = node.id; break; }
+      node = node.parentElement;
+    }
+    if (anchorId) {
+      var page = location.pathname.split('/').pop() || 'index.html';
+      sessionStorage.setItem('stackly_return', page + '#' + anchorId);
+    }
+  } catch(e){}
+  window.location.href="404.html";
+}
+window.error = error;
+
+/* ---------- Land exactly where the visitor left off (reload / return-from-error) — instantly, no visible scrolling ---------- */
+(function(){
+  var returnHash = window.__stacklyReturnHash || null;
+  var restoreY = (typeof window.__stacklyRestoreY === 'number') ? window.__stacklyRestoreY : null;
+  window.__stacklyReturnHash = null;
+  window.__stacklyRestoreY = null;
+  if (!returnHash && restoreY === null) return;
+
+  function revealAll(){
+    document.querySelectorAll('.reveal').forEach(function(el){
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    });
+    document.querySelectorAll('[style*="opacity: 0"], [style*="opacity:0"]').forEach(function(el){
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    });
+  }
+
+  function computeTarget(){
+    /* Reveal first, then measure — a still-hidden .reveal section sits offset
+       by its entrance transform, which threw the measurement off before. */
+    revealAll();
+    if (typeof ScrollTrigger !== 'undefined') ScrollTrigger.refresh();
+    if (returnHash) {
+      var el = document.querySelector(returnHash);
+      return el ? (el.getBoundingClientRect().top + window.pageYOffset - 90) : null;
+    }
+    return restoreY;
+  }
+
+  function applyRestore(){
+    var target = computeTarget();
+    if (target === null) return;
+    window.scrollTo({top: Math.max(target, 0), behavior:'auto'});
+  }
+
+  applyRestore();
+  /* A slow first-ever load (cold CDN edge / uncached images+fonts on a fresh
+     GitHub Pages visit) can keep shifting the layout well after this point —
+     single checks on 'load'/'fonts.ready' don't always land after it settles.
+     Keep re-snapping to the target for a couple of seconds and stop on its own
+     once the position holds steady twice in a row, so this self-corrects
+     regardless of how long assets take to finish on that particular visit. */
+  var attempts = 0, lastTarget = null, stableCount = 0;
+  var poll = setInterval(function(){
+    attempts++;
+    var t = computeTarget();
+    if (t !== null) {
+      stableCount = (lastTarget !== null && Math.abs(t - lastTarget) < 2) ? stableCount + 1 : 0;
+      lastTarget = t;
+      window.scrollTo({top: Math.max(t, 0), behavior:'auto'});
+    }
+    if (stableCount >= 2 || attempts >= 24) clearInterval(poll);
+  }, 220);
+  window.addEventListener('load', applyRestore);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(applyRestore);
+  }
+})();
+});
+</script>
+</body>
+</html>

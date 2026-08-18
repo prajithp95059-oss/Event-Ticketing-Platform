@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* Keep this page exactly where the visitor left it — on reload, on browser
+   back/forward, and when coming back from an error page. A fresh click on a
+   header menu or quick link always starts at the hero, never a saved section.
+   Browser scroll-restoration is switched off so this script is the only thing
+   that moves the page, and it always does it instantly (no visible scrolling). */
+(function(){
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  var pageKey = 'stackly_scroll::' + location.pathname;
+  var navEntry = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || null;
+  var navType = navEntry ? navEntry.type : (performance.navigation ? (performance.navigation.type === 1 ? 'reload' : performance.navigation.type === 2 ? 'back_forward' : 'navigate') : 'navigate');
+  if (location.hash && location.hash.length > 1) {
+    window.__stacklyReturnHash = location.hash;
+    history.replaceState(null, '', location.pathname + location.search);
+  } else if (navType === 'reload' || navType === 'back_forward' || sessionStorage.getItem('stackly_forceRestore')) {
+    sessionStorage.removeItem('stackly_forceRestore');
+    var savedY = sessionStorage.getItem(pageKey);
+    if (savedY !== null) window.__stacklyRestoreY = parseFloat(savedY);
+  } else {
+    /* Fresh click on a header menu / quick link — always start at the hero,
+       never at whatever section was scrolled to last time on this page. */
+    sessionStorage.removeItem(pageKey);
+  }
+  var saveScroll = function(){ sessionStorage.setItem(pageKey, window.scrollY); };
+  var ticking = false;
+  window.addEventListener('scroll', function(){
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(function(){ saveScroll(); ticking = false; });
+    }
+  }, {passive:true});
+  window.addEventListener('pagehide', saveScroll);
+  window.addEventListener('beforeunload', saveScroll);
+})();
+</script>
+<title>Categories — Stackly | Discover. Book. Experience.</title>
+<meta name="description" content="Browse every event category on Stackly — music, comedy, sports, workshops, conferences, culture, nightlife and more.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+<style>
+/* ===================== TOKENS ===================== */
+:root{
+  --royal:#2563EB;
+  --indigo:#312E81;
+  --cyan:#06B6D4;
+  --violet:#7C3AED;
+  --sky:#38BDF8;
+  --soft-blue:#EFF6FF;
+  --white:#FFFFFF;
+  --slate:#0F172A;
+  --slate-2:#1E293B;
+  --slate-mute:#64748B;
+  --line:#E2E8F0;
+  --grad-primary: linear-gradient(120deg,#2563EB 0%, #06B6D4 100%);
+  --grad-accent: linear-gradient(120deg,#4F46E5 0%, #7C3AED 100%);
+  --grad-dark: linear-gradient(180deg,#0F172A 0%, #1E1B4B 100%);
+  --shadow-sm: 0 2px 8px rgba(15,23,42,0.06);
+  --shadow-md: 0 8px 24px rgba(15,23,42,0.09);
+  --shadow-lg: 0 24px 60px rgba(37,99,235,0.16);
+  --radius: 20px;
+  --radius-sm: 12px;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;overflow-x:hidden;width:100%;}
+body{
+  font-family:var(--font-body);
+  color:var(--slate);
+  background:var(--white);
+  line-height:1.5;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;display:block;}
+a{text-decoration:none;color:inherit;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;}
+ul{list-style:none;}
+input,select{font-family:inherit;}
+.container{max-width:1760px;margin:0 auto;padding:0 40px;}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;line-height:1.1;letter-spacing:-0.01em;}
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:12px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--royal);
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-weight:500;
+}
+.eyebrow::before{content:'';width:20px;height:1px;background:var(--royal);}
+.section{padding:100px 0;}
+.section-head{max-width:640px;margin-bottom:56px;}
+.section-head h2{font-size:clamp(28px,4vw,42px);margin-top:14px;color:var(--slate);}
+.section-head p{margin-top:14px;color:var(--slate-mute);font-size:16px;}
+.section-head.center{margin-left:auto;margin-right:auto;text-align:center;}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:15px 28px;border-radius:100px;font-weight:600;font-size:15px;
+  transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease;
+  white-space:nowrap;
+}
+.btn-primary{background:var(--grad-primary);color:#fff;box-shadow:0 10px 24px rgba(37,99,235,.28);}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(37,99,235,.36);}
+.btn-outline{border:1.5px solid var(--line);color:var(--slate);background:#fff;}
+.btn-outline:hover{border-color:var(--royal);color:var(--royal);transform:translateY(-3px);}
+.btn-ghost{color:var(--white);border:1.5px solid rgba(255,255,255,.35);}
+.btn-ghost:hover{border-color:#fff;transform:translateY(-3px);}
+.btn-sm{padding:10px 20px;font-size:13px;}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;font-size:12px;font-weight:600;}
+.reveal{opacity:0;transform:translateY(40px);}
+
+/* ===================== HEADER ===================== */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  padding:18px 0;
+  background:#fff;
+  box-shadow:0 2px 18px rgba(15,23,42,.07);
+  transition:padding .4s ease, box-shadow .4s ease;
+}
+header.scrolled{
+  padding:12px 0;
+  box-shadow:0 6px 28px rgba(15,23,42,.12);
+}
+.nav-wrap{display:flex;align-items:center;justify-content:space-between;gap:24px;}
+.logo{display:flex;align-items:center;gap:2px;font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--slate);}
+.logo img{height:32px;width:auto;display:block;}
+header.scrolled .logo{color:var(--slate);}
+.logo .mark{
+  width:36px;height:36px;border-radius:10px;background:var(--grad-primary);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;
+  transform:rotate(-6deg);
+}
+.nav-links{display:flex;align-items:center;gap:36px;}
+.nav-links a{
+  font-size:14.5px;font-weight:600;color:var(--slate-2);position:relative;padding:6px 0;
+}
+.nav-links a::after{
+  content:'';position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--grad-primary);
+  transition:width .3s ease;
+}
+.nav-links a:hover::after,.nav-links a.active::after{width:100%;}
+.nav-links a.active{color:var(--royal);}
+.nav-right{display:flex;align-items:center;gap:14px;}
+.hamburger{display:none;flex-direction:column;gap:5px;width:30px;height:24px;justify-content:center;}
+.hamburger span{display:block;height:2px;width:100%;background:var(--slate);border-radius:2px;transition:all .35s ease;}
+.mobile-nav{
+  position:fixed;top:0;right:-340px;height:100vh;width:min(320px,84vw);background:#fff;z-index:1200;
+  box-shadow:-10px 0 40px rgba(15,23,42,.16);transition:right .45s cubic-bezier(.2,.8,.2,1);
+  padding:32px 28px;display:flex;flex-direction:column;gap:8px;
+}
+.mobile-nav.open{right:0;}
+.mobile-nav a{padding:14px 4px;font-weight:600;font-size:16px;border-bottom:1px solid var(--line);color:var(--slate-2);position:relative;}
+.mobile-nav a.active{color:var(--royal);}
+.mobile-nav a.active::after{content:'';position:absolute;left:4px;bottom:10px;height:2px;width:28px;background:var(--grad-primary);border-radius:2px;}
+.mobile-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:1100;opacity:0;pointer-events:none;transition:opacity .4s ease;}
+.mobile-overlay.open{opacity:1;pointer-events:auto;}
+.mobile-close{align-self:flex-end;width:36px;height:36px;display:flex;align-items:center;justify-content:center;}
+
+/* ===================== HERO ===================== */
+.hero{
+  position:relative;padding:150px 0 90px;background:var(--grad-dark);color:#fff;overflow:hidden;
+  min-height:100vh;display:flex;align-items:center;
+}
+.hero .container{width:100%;}
+.hero-blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;z-index:0;}
+.blob-1{width:520px;height:520px;background:var(--royal);top:-160px;right:-120px;}
+.blob-2{width:400px;height:400px;background:var(--violet);bottom:-160px;left:-80px;}
+.blob-3{width:280px;height:280px;background:var(--cyan);top:40%;left:44%;opacity:.25;}
+.particle{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);z-index:1;}
+.hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:1.1fr .9fr;gap:60px;align-items:center;}
+.hero-copy .eyebrow{color:var(--sky);}
+.hero-copy .eyebrow::before{background:var(--sky);}
+.hero-copy h1{font-size:clamp(38px,5.4vw,64px);margin-top:18px;color:#fff;}
+.hero-copy h1 .line{display:block;overflow:hidden;}
+.hero-copy h1 .line span{display:inline-block;}
+.hero-copy p{margin-top:20px;font-size:18px;color:rgba(255,255,255,.72);max-width:480px;}
+.hero-ctas{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap;}
+.hero-search{
+  margin-top:44px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
+  border-radius:20px;padding:20px;backdrop-filter:blur(6px);
+}
+.hero-filters{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;}
+.hero-filters select{
+  padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.08);color:#fff;font-size:13px;font-weight:600;outline:none;
+}
+.hero-filters select option{color:#0F172A;}
+.hero-filters .btn{padding:12px 22px;}
+.hero-visual{position:relative;z-index:2;}
+.hero-visual .img-wrap{border-radius:24px;overflow:hidden;position:relative;box-shadow:var(--shadow-lg);}
+.hero-visual img{width:100%;height:clamp(300px,36vw,440px);object-fit:cover;}
+.hero-visual .img-wrap::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,0) 40%,rgba(15,23,42,.55) 100%);}
+.float-card{
+  position:absolute;background:#fff;border-radius:16px;padding:14px 16px;box-shadow:var(--shadow-lg);
+  display:flex;align-items:center;gap:12px;min-width:200px;color:var(--slate);
+}
+.float-card .fc-cat{width:44px;height:44px;border-radius:10px;flex-shrink:0;background:var(--grad-primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;}
+.float-card .fc-title{font-weight:700;font-size:13.5px;}
+.float-card .fc-meta{font-size:11.5px;color:var(--slate-mute);margin-top:2px;}
+.float-card .fc-price{font-size:12px;font-weight:700;color:var(--royal);margin-top:4px;}
+.float-1{top:-24px;left:-30px;}
+.float-2{bottom:60px;right:-36px;}
+.float-3{bottom:-30px;left:20px;}
+
+/* ===================== TICKET CARD MOTIF ===================== */
+.ticket-card{
+  position:relative;background:#fff;border-radius:18px;overflow:hidden;box-shadow:var(--shadow-sm);
+  border:1px solid var(--line);transition:transform .4s cubic-bezier(.2,.8,.2,1), box-shadow .4s ease;
+}
+.ticket-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-lg);}
+.ticket-media{position:relative;height:190px;overflow:hidden;}
+.ticket-media img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.8,.2,1);}
+.ticket-card:hover .ticket-media img{transform:scale(1.08);}
+.ticket-badge{position:absolute;top:12px;left:12px;padding:5px 12px;border-radius:100px;font-size:11px;font-weight:700;color:#fff;letter-spacing:.02em;}
+.badge-trending{background:linear-gradient(120deg,#F97316,#EF4444);}
+.badge-selling{background:linear-gradient(120deg,#7C3AED,#DB2777);}
+.badge-few{background:linear-gradient(120deg,#DC2626,#B91C1C);}
+.badge-new{background:var(--grad-primary);}
+.ticket-cat{position:absolute;bottom:12px;left:12px;background:rgba(15,23,42,.72);color:#fff;font-size:10.5px;font-weight:600;padding:4px 10px;border-radius:100px;backdrop-filter:blur(4px);}
+.ticket-body{padding:18px 18px 20px;position:relative;}
+.ticket-body h4{font-size:16.5px;margin-bottom:8px;}
+.ticket-meta{font-size:12.5px;color:var(--slate-mute);display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+.ticket-perf{
+  position:relative;border-top:1.5px dashed var(--line);margin:0 -18px;padding:14px 18px 0;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.ticket-perf::before,.ticket-perf::after{
+  content:'';position:absolute;top:-8px;width:16px;height:16px;border-radius:50%;background:var(--white);border:1.5px solid var(--line);
+}
+.ticket-perf::before{left:-8px;}
+.ticket-perf::after{right:-8px;}
+.ticket-price{font-size:11px;color:var(--slate-mute);}
+.ticket-price b{display:block;font-size:16px;color:var(--slate);font-family:var(--font-display);}
+.book-btn{padding:9px 18px;border-radius:100px;background:var(--slate);color:#fff;font-size:12.5px;font-weight:700;transition:background .3s ease, transform .3s ease;}
+.book-btn:hover{background:var(--royal);transform:translateY(-2px);}
+
+/* grids */
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:20px;}
+
+/* ===================== CATEGORIES ===================== */
+.cat-card{
+  position:relative;border-radius:18px;overflow:hidden;height:220px;cursor:pointer;
+}
+.cat-card img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.8,.2,1);}
+.cat-card::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,0) 30%,rgba(15,23,42,.82) 100%);transition:opacity .4s ease;}
+.cat-card:hover img{transform:scale(1.12) rotate(1deg);}
+.cat-label{position:absolute;left:18px;bottom:16px;z-index:2;color:#fff;}
+.cat-label .icon{font-size:22px;margin-bottom:6px;display:block;transform:translateY(0);transition:transform .4s ease;}
+.cat-card:hover .icon{transform:translateY(-6px);}
+.cat-label h4{font-size:15.5px;font-weight:700;}
+.cat-label span{font-size:11.5px;opacity:0;max-height:0;display:block;transition:opacity .35s ease;color:rgba(255,255,255,.8);}
+.cat-card:hover .cat-label span{opacity:1;}
+.explore-all{display:flex;justify-content:center;margin-top:44px;}
+
+/* ===================== TRAIN ROUTE ANIMATION ===================== */
+.train-route{position:relative;height:40px;margin-bottom:36px;overflow:hidden;}
+.route-line{position:absolute;inset:0;width:100%;height:100%;}
+.route-line line{stroke:var(--line);stroke-width:2;}
+.train-track{position:absolute;top:50%;left:0;transform:translate(-10%,-50%);animation:trainGo 9s linear infinite;}
+.train-emoji{display:inline-block;font-size:26px;filter:drop-shadow(0 4px 8px rgba(37,99,235,.35));}
+@keyframes trainGo{
+  0%{transform:translate(-10%,-50%);}
+  100%{transform:translate(1120px,-50%);}
+}
+@media (max-width:768px){
+.container{padding:0 20px;}
+  @keyframes trainGo{
+    0%{transform:translate(-10%,-50%);}
+    100%{transform:translate(340px,-50%);}
+  }
+}
+
+/* ===================== CITY DISCOVERY ===================== */
+.city-card{position:relative;border-radius:18px;overflow:hidden;height:260px;}
+.city-card img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.2,.8,.2,1);}
+.city-card:hover img{transform:scale(1.1);}
+.city-card::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,.05) 20%,rgba(15,23,42,.85) 100%);}
+.city-info{position:absolute;left:18px;bottom:16px;z-index:2;color:#fff;}
+.city-info h4{font-size:19px;}
+.city-info span{font-size:12px;opacity:.85;}
+.city-card.hq::before{
+  content:'HQ CITY';position:absolute;top:14px;right:14px;z-index:3;background:var(--grad-accent);
+  color:#fff;font-size:10px;font-weight:700;padding:5px 10px;border-radius:100px;letter-spacing:.04em;
+}
+
+/* ===================== TABS (Upcoming) ===================== */
+.tabs{display:flex;gap:8px;margin-bottom:36px;background:var(--soft-blue);padding:6px;border-radius:100px;width:fit-content;}
+.tab-btn{padding:11px 24px;border-radius:100px;font-weight:700;font-size:13.5px;color:var(--slate-mute);transition:all .35s ease;}
+.tab-btn.active{background:var(--grad-primary);color:#fff;box-shadow:0 8px 18px rgba(37,99,235,.3);}
+.tab-panel{display:none;}
+.tab-panel.active{display:grid;}
+
+/* ===================== FEATURED EVENT ===================== */
+.featured{background:var(--slate);color:#fff;border-radius:28px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;}
+.featured-img{position:relative;height:100%;min-height:460px;}
+.featured-img img{width:100%;height:100%;object-fit:cover;}
+.featured-info{padding:52px;display:flex;flex-direction:column;justify-content:center;}
+.featured-info .eyebrow{color:var(--sky);}
+.featured-info .eyebrow::before{background:var(--sky);}
+.featured-info h3{font-size:clamp(26px,3vw,34px);margin:14px 0 18px;}
+.f-meta{display:flex;flex-direction:column;gap:10px;font-size:14.5px;color:rgba(255,255,255,.78);margin-bottom:20px;}
+.f-price{font-size:26px;font-family:var(--font-display);font-weight:700;color:#fff;margin-bottom:24px;}
+.f-price span{font-size:13px;color:rgba(255,255,255,.6);font-weight:400;display:block;margin-bottom:4px;}
+.f-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px;}
+.f-icon-btn{width:46px;height:46px;border-radius:100px;border:1.5px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;transition:all .3s ease;}
+.f-icon-btn:hover{border-color:#fff;background:rgba(255,255,255,.08);}
+.f-extra{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-top:24px;border-top:1px solid rgba(255,255,255,.14);}
+.f-extra div span{display:block;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.f-extra div b{font-size:14px;font-weight:600;}
+
+/* ===================== BOOKING ===================== */
+.booking-wrap{display:grid;grid-template-columns:1.3fr .9fr;gap:32px;align-items:start;}
+.flow-steps{display:flex;flex-wrap:wrap;gap:0;margin-bottom:40px;}
+.flow-step{display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:700;color:var(--slate-mute);}
+.flow-step .num{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;}
+.flow-step.done .num{background:var(--grad-primary);color:#fff;border:none;}
+.flow-step.done{color:var(--slate);}
+.flow-arrow{width:34px;text-align:center;color:var(--line);font-size:14px;}
+.ticket-type-card{
+  display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border:1.5px solid var(--line);
+  border-radius:16px;margin-bottom:14px;transition:border-color .3s ease;
+}
+.ticket-type-card.selected{border-color:var(--royal);background:var(--soft-blue);}
+.tt-left h4{font-size:15.5px;margin-bottom:4px;}
+.tt-left span{font-size:12.5px;color:var(--slate-mute);}
+.tt-price{font-family:var(--font-display);font-weight:700;font-size:17px;margin-right:20px;}
+.qty-control{display:flex;align-items:center;gap:12px;}
+.qty-control button{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--line);font-size:16px;font-weight:700;color:var(--slate);}
+.qty-control button:hover{border-color:var(--royal);color:var(--royal);}
+.qty-control span{min-width:16px;text-align:center;font-weight:700;}
+.summary-card{background:var(--soft-blue);border-radius:20px;padding:28px;position:sticky;top:110px;}
+.summary-card h4{font-size:17px;margin-bottom:20px;}
+.summary-row{display:flex;justify-content:space-between;font-size:14px;color:var(--slate-mute);margin-bottom:12px;}
+.summary-row.total{border-top:1.5px dashed var(--line);margin-top:14px;padding-top:14px;font-weight:700;color:var(--slate);font-size:16px;}
+.pay-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:22px 0;}
+.pay-opt{padding:12px;border-radius:10px;border:1.5px solid var(--line);text-align:center;font-size:12.5px;font-weight:700;background:#fff;transition:all .3s ease;}
+.pay-opt.active{border-color:var(--royal);color:var(--royal);background:#fff;box-shadow:0 4px 14px rgba(37,99,235,.16);}
+
+/* ===================== DIGITAL TICKET ===================== */
+.dticket{
+  background:var(--slate);border-radius:24px;color:#fff;display:grid;grid-template-columns:1fr auto;overflow:hidden;
+  position:relative;box-shadow:var(--shadow-lg);
+}
+.dticket-main{padding:44px;}
+.dticket-main .conf{color:var(--cyan);font-weight:700;font-size:14px;margin-bottom:6px;}
+.dticket-main h3{font-size:26px;margin-bottom:22px;}
+.dt-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 28px;margin-bottom:28px;}
+.dt-grid div span{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.45);margin-bottom:5px;}
+.dt-grid div b{font-size:14.5px;font-weight:600;}
+.dt-actions{display:flex;gap:12px;flex-wrap:wrap;}
+.dticket-stub{
+  background:rgba(255,255,255,.06);border-left:2px dashed rgba(255,255,255,.25);
+  padding:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;width:220px;
+}
+.qr-box{width:130px;height:130px;background:#fff;border-radius:12px;padding:8px;}
+.qr-box svg{width:100%;height:100%;}
+.dticket-stub .bid{font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.6);letter-spacing:.04em;}
+
+/* ===================== HOST/ORGANIZER ===================== */
+.host-section{background:var(--soft-blue);border-radius:28px;padding:60px;display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center;}
+.feature-list{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0 32px;}
+.feature-item{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;}
+.feature-item .dot{width:8px;height:8px;border-radius:50%;background:var(--grad-primary);flex-shrink:0;}
+.host-img{border-radius:20px;overflow:hidden;box-shadow:var(--shadow-md);}
+.host-img img{width:100%;height:420px;object-fit:cover;}
+.host-cta-section{position:relative;overflow:hidden;}
+.section-bg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.06;z-index:0;}
+.host-cta-section .container{position:relative;z-index:1;}
+
+/* ===================== CATEGORY SPOTLIGHT ===================== */
+.spotlight-section{position:relative;padding:90px 0;background:var(--grad-dark);overflow:hidden;}
+.spotlight-section .section-bg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.32;z-index:0;}
+.spotlight-section::before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(120deg,rgba(15,23,42,.92) 20%,rgba(124,58,237,.5) 100%);}
+.spotlight-section .container{position:relative;z-index:2;}
+.spotlight-content{max-width:600px;}
+.spotlight-stats{display:flex;gap:32px;margin-top:26px;flex-wrap:wrap;}
+.spotlight-stats div b{display:block;font-family:var(--font-display);font-size:26px;color:#fff;}
+.spotlight-stats div span{font-size:12px;color:rgba(255,255,255,.6);}
+.spotlight-float{position:absolute;border-radius:16px;overflow:hidden;box-shadow:var(--shadow-lg);border:4px solid rgba(255,255,255,.15);z-index:2;animation:spotlightFloat 5s ease-in-out infinite;}
+.spotlight-float img{width:100%;height:100%;object-fit:cover;display:block;}
+.sf-1{width:160px;height:200px;top:0%;right:14%;animation-delay:0s;}
+.sf-2{width:136px;height:168px;top:52%;right:30%;animation-delay:.9s;}
+.sf-3{width:112px;height:144px;top:10%;right:36%;animation-delay:1.7s;}
+@keyframes spotlightFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-18px);}}
+@media (max-width:1100px){.sf-3{display:none;}}
+@media (max-width:900px){.spotlight-float{display:none;}}
+
+/* ===================== POPULAR SEARCHES ===================== */
+.search-cloud{display:flex;flex-wrap:wrap;gap:12px;}
+.search-cloud a{padding:10px 18px;border-radius:100px;background:var(--soft-blue);color:var(--slate-2);font-size:13.5px;font-weight:600;transition:all .3s ease;}
+.search-cloud a:hover{background:var(--grad-primary);color:#fff;transform:translateY(-2px);}
+
+/* ===================== HOW IT WORKS ===================== */
+.steps-wrap{position:relative;}
+.step-row{display:grid;grid-template-columns:auto 1fr;gap:28px;padding:32px 0;border-bottom:1px solid var(--line);}
+.step-row:last-child{border-bottom:none;}
+.step-num{font-family:var(--font-display);font-size:44px;font-weight:700;background:var(--grad-primary);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.step-row h4{font-size:19px;margin-bottom:8px;}
+.step-row p{color:var(--slate-mute);font-size:14.5px;max-width:520px;}
+
+/* ===================== BLOG ===================== */
+.blog-card{border-radius:18px;overflow:hidden;border:1px solid var(--line);}
+.blog-img{height:190px;overflow:hidden;}
+.blog-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease;}
+.blog-card:hover .blog-img img{transform:scale(1.08);}
+.blog-body{padding:20px;}
+.blog-cat{font-size:11px;font-weight:700;color:var(--royal);text-transform:uppercase;letter-spacing:.04em;}
+.blog-body h4{font-size:16px;margin:10px 0 8px;}
+.blog-body p{font-size:13.5px;color:var(--slate-mute);margin-bottom:14px;}
+.blog-meta{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--slate-mute);}
+.read-more{color:var(--royal);font-weight:700;}
+
+/* ===================== NEWSLETTER ===================== */
+.newsletter{background:var(--grad-accent);border-radius:28px;padding:64px;text-align:center;color:#fff;position:relative;overflow:hidden;}
+.newsletter h2{font-size:clamp(26px,3.4vw,38px);}
+.newsletter p{margin:14px auto 30px;max-width:480px;color:rgba(255,255,255,.85);}
+.nl-form{display:flex;gap:10px;max-width:440px;margin:0 auto;}
+.nl-form input{flex:1;padding:15px 20px;border-radius:100px;border:none;outline:none;font-size:14.5px;}
+.nl-form button{padding:15px 26px;border-radius:100px;background:var(--slate);color:#fff;font-weight:700;font-size:14.5px;transition:transform .3s ease;}
+.nl-form button:hover{transform:translateY(-2px);}
+.nl-msg{margin-top:14px;font-size:13px;color:#fff;min-height:18px;}
+
+/* ===================== FOOTER ===================== */
+footer{background:var(--slate);color:rgba(255,255,255,.7);padding:80px 0 30px;}
+.footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1.2fr;gap:32px;padding-bottom:50px;border-bottom:1px solid rgba(255,255,255,.1);}
+.footer-grid h5{color:#fff;font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:20px;}
+.footer-grid ul li{margin-bottom:12px;font-size:14px;}
+.footer-grid ul li a:hover{color:#fff;}
+.footer-brand p{font-size:14px;margin:16px 0 22px;line-height:1.7;color:rgba(255,255,255,.55);}
+.social-row{display:flex;gap:10px;}
+.social-icon{
+  width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;
+  transition:all .35s ease;color:#fff;
+}
+.social-icon:hover{transform:translateY(-4px);}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-top:26px;font-size:13px;}
+.footer-bottom .links{display:flex;gap:18px;flex-wrap:wrap;}
+/* ===================== RESPONSIVE ===================== */
+@media (max-width:1024px){
+  .grid-4{grid-template-columns:repeat(2,1fr);}
+  .grid-5{grid-template-columns:repeat(3,1fr);}
+  .hero-grid{grid-template-columns:1fr;}
+  .hero-visual{order:-1;}
+  .float-card{display:none;}
+  .featured{grid-template-columns:1fr;}
+  .booking-wrap{grid-template-columns:1fr;}
+  .host-section{grid-template-columns:1fr;padding:40px;}
+  .footer-grid{grid-template-columns:1fr 1fr;}
+  .nav-links{display:none;}
+  .hamburger{display:flex;}
+}
+@media (max-width:768px){
+  .grid-3{grid-template-columns:1fr 1fr;}
+  .grid-5{grid-template-columns:1fr 1fr;}
+  .section{padding:64px 0;}
+  .hero{padding:112px 0 56px;min-height:0;}
+  .hero-visual{display:none;}
+  .hero-filters{grid-template-columns:1fr 1fr;}
+  .dticket{grid-template-columns:1fr;}
+  .dticket-stub{border-left:none;border-top:2px dashed rgba(255,255,255,.25);width:100%;flex-direction:row;justify-content:center;}
+  .f-extra{grid-template-columns:1fr;}
+  .nav-right .btn-primary.btn-sm{display:none;}
+  .host-img{display:none;}
+  .host-section{padding:32px;text-align:center;}
+  .feature-list{justify-items:center;}
+}
+@media (max-width:600px){
+  .grid-4,.grid-3,.grid-5{grid-template-columns:1fr 1fr;}
+  .feature-list{grid-template-columns:1fr;}
+  .hero-filters{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr 1fr;}
+  .search-cloud{justify-content:center;text-align:center;}
+}
+@media (max-width:425px){
+  .grid-4,.grid-3,.grid-5{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr;}
+  .footer-bottom{flex-direction:column;align-items:flex-start;}
+  .host-section{padding:28px;}
+  .newsletter{padding:40px 24px;}
+  .nl-form{flex-direction:column;}
+  .search-cloud{flex-direction:column;align-items:stretch;}
+  .search-cloud a{text-align:center;}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:0.01ms !important;transition-duration:0.01ms !important;}
+}
+:focus-visible{outline:2.5px solid var(--royal);outline-offset:2px;}
+
+.page-hero{position:relative;padding:150px 0 70px;background:var(--grad-dark);color:#fff;overflow:hidden;}
+.page-hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:.34;}
+.page-hero::before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(160deg,rgba(15,23,42,.92) 10%,rgba(30,27,75,.86) 55%,rgba(124,58,237,.5) 100%);}
+.page-hero .hero-blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;z-index:1;}
+.page-hero .crumb{font-family:var(--font-mono);font-size:12.5px;color:rgba(255,255,255,.55);margin-bottom:14px;position:relative;z-index:2;}
+.page-hero .crumb a{color:var(--sky);}
+.page-hero h1{position:relative;z-index:2;font-size:clamp(34px,5vw,54px);color:#fff;}
+.page-hero p{position:relative;z-index:2;margin-top:14px;color:rgba(255,255,255,.72);font-size:16.5px;max-width:560px;}
+.page-hero-float{position:absolute;z-index:2;border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.4);border:3px solid rgba(255,255,255,.14);animation:heroFloat 6s ease-in-out infinite;}
+.page-hero-float img{width:100%;height:100%;object-fit:cover;display:block;}
+.phf-1{width:150px;height:190px;top:90px;right:9%;animation-delay:0s;}
+.phf-2{width:120px;height:150px;bottom:30px;right:24%;animation-delay:1.4s;}
+@keyframes heroFloat{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-20px) rotate(2deg);}}
+@media (max-width:1024px){.page-hero-float{display:none;}}
+
+.cat-big-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.cat-big-card{position:relative;border-radius:20px;overflow:hidden;height:280px;cursor:pointer;display:block;}
+.cat-big-card img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.8,.2,1);}
+.cat-big-card::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,.05) 30%,rgba(15,23,42,.86) 100%);}
+.cat-big-card:hover img{transform:scale(1.1) rotate(0.5deg);}
+.cat-big-label{position:absolute;left:22px;bottom:20px;z-index:2;color:#fff;}
+.cat-big-label .icon{font-size:30px;display:block;margin-bottom:8px;transform:translateY(0);transition:transform .4s ease;}
+.cat-big-card:hover .cat-big-label .icon{transform:translateY(-6px) scale(1.08);}
+.cat-big-label h3{font-size:20px;font-weight:700;}
+.cat-big-label span{font-size:12.5px;opacity:.85;display:block;margin-top:4px;}
+.cat-big-card .cat-arrow{position:absolute;top:20px;right:20px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;color:#fff;opacity:0;transform:translate(-6px,6px);transition:all .35s ease;}
+.cat-big-card:hover .cat-arrow{opacity:1;transform:translate(0,0);}
+
+.strip-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:14px;}
+
+@media (max-width:1024px){ .cat-big-grid{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:600px){ .cat-big-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header id="siteHeader">
+  <div class="container nav-wrap">
+    <a href="index.html" class="logo"><img src="assets/stackly-logo.webp" alt="Stackly logo">Stackly</a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="categories.html" class="active">Categories</a>
+      <a href="events.html">Events</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <div class="nav-right">
+      <a href="login.html" class="btn btn-primary btn-sm">Login</a>
+      <button class="hamburger" id="hamburgerBtn" aria-label="Open menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-overlay" id="mobileOverlay"></div>
+<nav class="mobile-nav" id="mobileNav" aria-label="Mobile">
+  <button class="mobile-close" id="mobileClose" aria-label="Close menu"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <a href="index.html">Home</a>
+  <a href="about.html">About</a>
+  <a href="categories.html" class="active">Categories</a>
+  <a href="events.html">Events</a>
+  <a href="contact.html">Contact</a>
+  <a href="login.html" class="btn btn-primary" style="margin-top:16px;">Login</a>
+</nav>
+
+
+<!-- ===================== PAGE HERO ===================== -->
+<section class="page-hero">
+  <img class="page-hero-bg" src="./assets/cat hero.webp" alt="Festival crowd with colourful lights">
+  <div class="hero-blob" style="width:460px;height:460px;background:var(--violet);top:-140px;left:-100px;"></div>
+  <div class="hero-blob" style="width:340px;height:340px;background:var(--cyan);bottom:-160px;right:-60px;"></div>
+  <div class="page-hero-float phf-1"><img src="./assets/concert.webp" alt="Workshop attendees collaborating"></div>
+  <div class="page-hero-float phf-2"><img src="./assets/lights.webp" alt="Concert lights on stage"></div>
+  <div class="container">
+    <div class="crumb"><a href="index.html">Home</a> / <span>Categories</span></div>
+    <h1>Find Your Kind of Experience</h1>
+    <p>From stadium concerts to campus fests, stand-up nights to startup meetups — every category, all in one place.</p>
+  </div>
+</section>
+
+<!-- ===================== CATEGORY GRID ===================== -->
+<section class="section" style="padding-top:70px;" id="categoriesMain">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Browse By Interest</span>
+      <h2>All Categories</h2>
+      <p>Tap a category to explore live listings — updated every day with new events across India.</p>
+    </div>
+    <div class="cat-big-grid" id="catBigGrid">
+  <a href="404.html" onclick="error(this); return false;" class="cat-big-card reveal">
+    <img src="./assets/a3.webp" alt="Music & Concerts category cover">
+    <span class="cat-arrow"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
+    <div class="cat-big-label">
+      <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></span>
+      <h3>Music & Concerts</h3>
+      <span>842 Events</span>
+    </div>
+  </a>
+  <a href="404.html" onclick="error(this); return false;" class="cat-big-card reveal">
+    <img src="./assets/a2.webp" alt="Comedy Shows category cover">
+    <span class="cat-arrow"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
+    <div class="cat-big-label">
+      <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></span>
+      <h3>Comedy Shows</h3>
+      <span>216 Events</span>
+    </div>
+  </a>
+  <a href="404.html" onclick="error(this); return false;" class="cat-big-card reveal">
+    <img src="./assets/a4.webp" alt="Sports category cover">
+    <span class="cat-arrow"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
+    <div class="cat-big-label">
+      <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><line x1="6" y1="18" x2="17" y2="7"/><path d="M15 5l4 4-2 2-4-4z"/><circle cx="5.5" cy="19.5" r="1.6"/></svg></span>
+      <h3>Sports</h3>
+      <span>310 Events</span>
+    </div>
+  </a>
+  <a href="404.html" onclick="error(this); return false;" class="cat-big-card reveal">
+    <img src="./assets/b4.webp" alt="Movies & Entertainment category cover">
+    <span class="cat-arrow"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
+    <div class="cat-big-label">
+      <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="7" y1="3" x2="7" y2="21"/><line x1="17" y1="3" x2="17" y2="21"/><line x1="2" y1="9" x2="22" y2="9"/><line x1="2" y1="15" x2="22" y2="15"/></svg></span>
+      <h3>Movies & Entertainment</h3>
+      <span>128 Events</span>
+    </div>
+  </a>
+  <a href="404.html" onclick="error(this); return false;" class="cat-big-card reveal">
+    <img src="./assets/team planning.webp" alt="Workshops category cover">
+    <span class="cat-arrow"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
+    <div class="cat-big-label">
+      <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+      <h3>Workshops</h3>
+      <span>402 Events</span>
+    </div>
+  </a>
+  <a href="404.html" onclick="error(this); return false;" class="cat-big-card reveal">
+    <img src="./assets/b6.webp" alt="Conferences category cover">
+    <span class="cat-arrow"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
+    <div class="cat-big-label">
+      <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
+      <h3>Conferences</h3>
+      <span>96 Events</span>
+    </div>
+  </a>
+  <a href="404.html" onclick="error(this); return false;" class="cat-big-card reveal">
+    <img src="./assets/b7.webp" alt="College Fests category cover">
+    <span class="cat-arrow"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
+    <div class="cat-big-label">
+      <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg></span>
+      <h3>College Fests</h3>
+      <span>274 Events</span>
+    </div>
+  </a>
+  <a href="404.html" onclick="error(this); return false;" class="cat-big-card reveal">
+    <img src="./assets/d6.webp" alt="Food & Lifestyle category cover">
+    <span class="cat-arrow"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
+    <div class="cat-big-label">
+      <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M3 11h18v2a7 7 0 0 1-7 7h-4a7 7 0 0 1-7-7v-2z"/><path d="M12 3v4"/><path d="M8.5 5l1.2 2"/><path d="M15.5 5l-1.2 2"/></svg></span>
+      <h3>Food & Lifestyle</h3>
+      <span>188 Events</span>
+    </div>
+  </a>
+  <a href="404.html" onclick="error(this); return false;" class="cat-big-card reveal">
+    <img src="./assets/a8.webp" alt="Cultural Events category cover">
+    <span class="cat-arrow"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
+    <div class="cat-big-label">
+      <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M12 2c2 3-2 4-2 7a2 2 0 0 0 4 0c0-3-4-4-2-7z"/><ellipse cx="12" cy="19" rx="8" ry="3"/></svg></span>
+      <h3>Cultural Events</h3>
+      <span>356 Events</span>
+    </div>
+  </a>
+  <a href="404.html" onclick="error(this); return false;" class="cat-big-card reveal">
+    <img src="./assets/b10.webp" alt="Family & Kids category cover">
+    <span class="cat-arrow"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
+    <div class="cat-big-label">
+      <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><ellipse cx="12" cy="9" rx="6" ry="7"/><path d="M12 16c0 1.3-.6 1.7-.9 2.6-.3.8.2 1.6.9 1.4"/></svg></span>
+      <h3>Family & Kids</h3>
+      <span>142 Events</span>
+    </div>
+  </a>
+  <a href="404.html" onclick="error(this); return false;" class="cat-big-card reveal">
+    <img src="./assets/cat hero.webp" alt="Nightlife & Parties category cover">
+    <span class="cat-arrow"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
+    <div class="cat-big-label">
+      <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M5 3v4M3 5h4M6 17v4M4 19h4M13 3l1.5 4.5L19 9l-4.5 1.5L13 15l-1.5-4.5L7 9l4.5-1.5L13 3z"/></svg></span>
+      <h3>Nightlife & Parties</h3>
+      <span>204 Events</span>
+    </div>
+  </a>
+  <a href="404.html" onclick="error(this); return false;" class="cat-big-card reveal">
+    <img src="./assets/fitness.webp" alt="Fitness & Wellness category cover">
+    <span class="cat-arrow"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
+    <div class="cat-big-label">
+      <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><path d="M6 19c0-3 3-5 6-5s6 2 6 5"/></svg></span>
+      <h3>Fitness & Wellness</h3>
+      <span>117 Events</span>
+    </div>
+  </a>
+</div>
+  </div>
+</section>
+
+<!-- ===================== TRENDING IN CATEGORIES ===================== -->
+<section class="section" style="background:var(--soft-blue);" id="trendingStrip">
+  <div class="container">
+    <div class="strip-head reveal">
+      <div>
+        <span class="eyebrow">Handpicked</span>
+        <h2 style="margin-top:14px;">Trending This Week</h2>
+      </div>
+      <a href="404.html" onclick="error(this); return false;" class="btn btn-outline">View All Events</a>
+    </div>
+    <div class="grid-4" id="trendStrip">
+  <div class="ticket-card reveal">
+    <div class="ticket-media">
+      <img src="./assets/d1.webp" alt="AR Rahman Live event photo" loading="lazy">
+      <span class="ticket-badge badge-trending">Trending</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Music & Concerts</span>
+    </div>
+    <div class="ticket-body">
+      <h4>AR Rahman Live</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 24 Oct 2026</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> YMCA Grounds, Chennai</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹1,499</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal">
+    <div class="ticket-media">
+      <img src="./assets/a2.webp" alt="Zakir Khan Stand-Up Comedy event photo" loading="lazy">
+      <span class="ticket-badge badge-selling">Selling Fast</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Comedy Shows</span>
+    </div>
+    <div class="ticket-body">
+      <h4>Zakir Khan Stand-Up Comedy</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2 Nov 2026</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Phoenix MarketCity, Bengaluru</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹799</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal">
+    <div class="ticket-media">
+      <img src="./assets/sunburn.webp" alt="Sunburn Arena — Bengaluru event photo" loading="lazy">
+      <span class="ticket-badge badge-trending">Trending</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg> Music & Concerts</span>
+    </div>
+    <div class="ticket-body">
+      <h4>Sunburn Arena — Bengaluru</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 14 Nov 2026</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Embassy Grounds, Bengaluru</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹2,499</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-card reveal">
+    <div class="ticket-media">
+      <img src="./assets/d4.webp" alt="IPL Fan Experience event photo" loading="lazy">
+      <span class="ticket-badge badge-few">Few Tickets Left</span>
+      <span class="ticket-cat"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><line x1="6" y1="18" x2="17" y2="7"/><path d="M15 5l4 4-2 2-4-4z"/><circle cx="5.5" cy="19.5" r="1.6"/></svg> Sports</span>
+    </div>
+    <div class="ticket-body">
+      <h4>IPL Fan Experience</h4>
+      <div class="ticket-meta"><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 5 Apr 2027</span><span><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;flex-shrink:0;vertical-align:-0.15em" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Wankhede Stadium, Mumbai</span></div>
+      <div class="ticket-perf">
+        <div class="ticket-price">From<b>₹999</b></div>
+        <button class="book-btn" onclick="error(this)">Book Now</button>
+      </div>
+    </div>
+  </div>
+</div>
+  </div>
+</section>
+
+<!-- ===================== CATEGORY SPOTLIGHT ===================== -->
+<section class="spotlight-section reveal" id="spotlight">
+  <img class="section-bg-img" src="./assets/e1.webp" alt="Concert crowd with stage lighting">
+  <div class="container">
+    <div class="spotlight-content">
+      <span class="eyebrow" style="color:var(--sky);">Category Spotlight</span>
+      <h2 style="color:#fff;margin-top:14px;">Music & Concerts Are Having a Moment</h2>
+      <p style="color:rgba(255,255,255,.75);margin-top:14px;max-width:520px;">From stadium tours to intimate gig nights, music is Stackly's fastest-growing category this quarter.</p>
+      <div class="spotlight-stats">
+        <div><b>842</b><span>Live Events</span></div>
+        <div><b>1.2M</b><span>Tickets Sold</span></div>
+        <div><b>48</b><span>Cities</span></div>
+      </div>
+      <a href="404.html" onclick="error(this); return false;" class="btn btn-primary" style="margin-top:26px;">Explore Music Events</a>
+    </div>
+    <div class="spotlight-float sf-1"><img src="./assets/e2.webp" alt="Crowd at a live concert"></div>
+    <div class="spotlight-float sf-2"><img src="./assets/e3.webp" alt="DJ performing on stage"></div>
+    <div class="spotlight-float sf-3"><img src="./assets/e1.webp" alt="Concert stage lighting"></div>
+  </div>
+</section>
+
+<!-- ===================== POPULAR SEARCHES ===================== -->
+<section class="section" style="padding-top:70px;" id="popularSearches">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Popular Right Now</span>
+      <h2>What Everyone's Searching For</h2>
+    </div>
+    <div class="search-cloud reveal">
+      <a href="404.html" onclick="error(this); return false;">Concerts in Chennai</a>
+      <a href="404.html" onclick="error(this); return false;">Weekend Workshops</a>
+      <a href="404.html" onclick="error(this); return false;">Stand-Up Comedy Bengaluru</a>
+      <a href="404.html" onclick="error(this); return false;">Free Events Near Me</a>
+      <a href="404.html" onclick="error(this); return false;">Cricket Match Tickets</a>
+      <a href="404.html" onclick="error(this); return false;">College Fests 2026</a>
+      <a href="404.html" onclick="error(this); return false;">Food Festivals</a>
+      <a href="404.html" onclick="error(this); return false;">Tech Conferences</a>
+      <a href="404.html" onclick="error(this); return false;">New Year Parties</a>
+      <a href="404.html" onclick="error(this); return false;">Kids Events</a>
+      <a href="404.html" onclick="error(this); return false;">Cultural Shows Salem</a>
+      <a href="404.html" onclick="error(this); return false;">Startup Meetups</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== HOST CTA ===================== -->
+<section class="section host-cta-section" id="hostCta">
+  <img class="section-bg-img" src="./assets/cat hero.webp" alt="Festival stage background">
+  <div class="container">
+    <div class="host-section reveal">
+      <div>
+        <span class="eyebrow">For Organizers</span>
+        <h2 style="font-size:clamp(26px,3.4vw,36px);margin-top:14px;">Have an Event in a New Category?</h2>
+        <p style="color:var(--slate-mute);margin-top:14px;">Stackly supports every kind of experience — from tech conferences to temple festivals. List yours in minutes.</p>
+        <a href="404.html" onclick="error(this); return false;" class="btn btn-primary" style="margin-top:24px;">Host an Event</a>
+      </div>
+      <div class="host-img">
+        <img src="assets/b5.webp" alt="Organizer planning a college fest with a laptop and notes">
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================== FOOTER ===================== -->
+<footer id="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="logo" style="color:#fff;"><img src="assets/stackly-logo.webp" alt="Stackly logo">Stackly</a>
+        <p>Stackly is an Indian event discovery and ticketing platform helping people discover unforgettable experiences and helping organizers sell, manage and grow their events.</p>
+        <div class="social-row">
+          <a class="social-icon" data-hover="#1877F2" href="404.html" onclick="error(this); return false;" aria-label="Facebook"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0 0 22 12"/></svg></a>
+          <a class="social-icon" data-hover="#E4405F" href="404.html" onclick="error(this); return false;" aria-label="Instagram"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c2.7 0 3.06.01 4.12.06 1.06.05 1.79.22 2.43.47.66.26 1.22.6 1.77 1.15.5.5.87 1.02 1.15 1.77.25.64.42 1.37.47 2.43.05 1.06.06 1.42.06 4.12s-.01 3.06-.06 4.12c-.05 1.06-.22 1.79-.47 2.43-.28.75-.64 1.27-1.15 1.77-.5.5-1.11.9-1.77 1.15-.64.25-1.37.42-2.43.47-1.06.05-1.42.06-4.12.06s-3.06-.01-4.12-.06c-1.06-.05-1.79-.22-2.43-.47a4.9 4.9 0 0 1-1.77-1.15 4.9 4.9 0 0 1-1.15-1.77c-.25-.64-.42-1.37-.47-2.43C2.01 15.06 2 14.7 2 12s.01-3.06.06-4.12c.05-1.06.22-1.79.47-2.43.26-.66.6-1.22 1.15-1.77A4.9 4.9 0 0 1 5.45.53C6.09.28 6.82.11 7.88.06 8.94.01 9.3 0 12 0zm0 5.4A6.6 6.6 0 1 0 12 18.6 6.6 6.6 0 0 0 12 5.4zm0 10.9a4.3 4.3 0 1 1 0-8.6 4.3 4.3 0 0 1 0 8.6zm6.9-11.15a1.54 1.54 0 1 1-3.08 0 1.54 1.54 0 0 1 3.08 0z"/></svg></a>
+          <a class="social-icon" data-hover="#0A66C2" href="404.html" onclick="error(this); return false;" aria-label="LinkedIn"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.86 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.11 20.45H3.56V9h3.55v11.45z"/></svg></a>
+          <a class="social-icon" data-hover="#0F172A" href="404.html" onclick="error(this); return false;" aria-label="X / Twitter"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.6 8.7L23.4 22h-7.1l-5.5-7.2L4.5 22H1.4l8.1-9.3L1 2h7.3l5 6.6L18.9 2zm-1.2 18h1.9L7.4 4H5.4l12.3 16z"/></svg></a>
+          <a class="social-icon" data-hover="#FF0000" href="404.html" onclick="error(this); return false;" aria-label="YouTube"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg></a>
+        </div>
+      </div>
+      <div><h5>Quick Links</h5><ul><li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="categories.html">Categories</a></li>
+        <li><a href="contact.html">Contact</a></li></ul></div>
+      <div><h5>Popular Categories</h5><ul><li><a href="404.html" onclick="error(this); return false;">Music & Concerts</a></li><li><a href="404.html" onclick="error(this); return false;">Comedy</a></li><li><a href="404.html" onclick="error(this); return false;">Sports</a></li><li><a href="404.html" onclick="error(this); return false;">Workshops</a></li><li><a href="404.html" onclick="error(this); return false;">Conferences</a></li><li><a href="404.html" onclick="error(this); return false;">Cultural Events</a></li></ul></div>
+      <div><h5>Company</h5><ul><li><a href="404.html" onclick="error(this); return false;">About Stackly</a></li><li><a href="404.html" onclick="error(this); return false;">Host an Event</a></li><li><a href="404.html" onclick="error(this); return false;">Organizer Login</a></li><li><a href="404.html" onclick="error(this); return false;">Help Center</a></li><li><a href="404.html" onclick="error(this); return false;">Privacy Policy</a></li><li><a href="404.html" onclick="error(this); return false;">Terms & Conditions</a></li></ul></div>
+      <div><h5>Contact</h5><p style="font-size:13.5px;line-height:1.7;">MMR Complex, Periyakollappatty, Chinna Thirupathi, Salem, Tamil Nadu 636008</p>
+        <p style="font-size:13.5px;margin-top:12px;">+91 98765 43210<br>hello@stackly.in</p></div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Stackly. All Rights Reserved.</span>
+      <div class="links"><a href="404.html" onclick="error(this); return false;">Privacy Policy</a><a href="404.html" onclick="error(this); return false;">Terms & Conditions</a><a href="404.html" onclick="error(this); return false;">Refund Policy</a><a href="404.html" onclick="error(this); return false;">Cookie Policy</a></div>
+    </div>
+  </div>
+</footer>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+gsap.registerPlugin(ScrollTrigger);
+
+/* ---------- HEADER SCROLL ---------- */
+const header = document.getElementById('siteHeader');
+window.addEventListener('scroll', ()=>{
+  header.classList.toggle('scrolled', window.scrollY > 40);
+});
+
+/* ---------- MOBILE NAV ---------- */
+const mobileNav = document.getElementById('mobileNav');
+const overlay = document.getElementById('mobileOverlay');
+function openNav(){ mobileNav.classList.add('open'); overlay.classList.add('open'); }
+function closeNav(){ mobileNav.classList.remove('open'); overlay.classList.remove('open'); }
+document.getElementById('hamburgerBtn').addEventListener('click', openNav);
+document.getElementById('mobileClose').addEventListener('click', closeNav);
+overlay.addEventListener('click', closeNav);
+document.querySelectorAll('.mobile-nav a').forEach(a=>a.addEventListener('click', closeNav));
+/* ---------- generic reveals ---------- */
+ScrollTrigger.batch('.reveal', {
+  start:'top 92%',
+  onEnter: batch => gsap.to(batch, {opacity:1, y:0, duration:0.5, stagger:0.06, ease:'power2.out'})
+});
+ScrollTrigger.batch('.cat-big-card, .ticket-card', {
+  start:'top 92%',
+  onEnter: batch => gsap.fromTo(batch, {opacity:0, y:30}, {opacity:1, y:0, duration:0.55, stagger:0.07, ease:'power2.out'})
+});
+
+/* ---------- pop-up entrance for every section ---------- */
+document.querySelectorAll('body > section').forEach(sec=>{
+  if(sec.classList.contains('page-hero')) return;
+  gsap.set(sec, {opacity:0, scale:0.96, y:26});
+  ScrollTrigger.create({
+    trigger: sec, start:'top 90%', once:true,
+    onEnter: ()=> gsap.to(sec, {opacity:1, scale:1, y:0, duration:0.5, ease:'power2.out'})
+  });
+});
+
+/* ---------- hero entrance ---------- */
+gsap.timeline({defaults:{ease:'power3.out'}})
+  .from('.page-hero .crumb', {opacity:0, y:14, duration:0.5})
+  .from('.page-hero h1', {opacity:0, y:24, duration:0.7}, '-=0.2')
+  .from('.page-hero p', {opacity:0, y:16, duration:0.6}, '-=0.4');
+gsap.to('.page-hero .hero-blob', {x:20, y:14, duration:8, yoyo:true, repeat:-1, ease:'sine.inOut'});
+
+function error(el){
+  /* Tell the 404 page exactly which section this button lives in (same
+     pattern already used by hero search / newsletter / contact), instead of
+     falling back to document.referrer (no hash) + a raw saved scroll pixel
+     that goes stale if the page hasn't finished loading yet — that fallback
+     was the real reason returning from Book Now etc. landed on the hero the
+     first time and only self-corrected on a second try. */
+  try {
+    var node = el, anchorId = null;
+    while (node && node !== document.body) {
+      if (node.id) { anchorId = node.id; break; }
+      node = node.parentElement;
+    }
+    if (anchorId) {
+      var page = location.pathname.split('/').pop() || 'index.html';
+      sessionStorage.setItem('stackly_return', page + '#' + anchorId);
+    }
+  } catch(e){}
+  window.location.href="404.html";
+}
+window.error = error;
+
+/* ---------- Land exactly where the visitor left off (reload / return-from-error) — instantly, no visible scrolling ---------- */
+(function(){
+  var returnHash = window.__stacklyReturnHash || null;
+  var restoreY = (typeof window.__stacklyRestoreY === 'number') ? window.__stacklyRestoreY : null;
+  window.__stacklyReturnHash = null;
+  window.__stacklyRestoreY = null;
+  if (!returnHash && restoreY === null) return;
+
+  function revealAll(){
+    document.querySelectorAll('.reveal').forEach(function(el){
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    });
+    document.querySelectorAll('[style*="opacity: 0"], [style*="opacity:0"]').forEach(function(el){
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    });
+  }
+
+  function computeTarget(){
+    /* Reveal first, then measure — a still-hidden .reveal section sits offset
+       by its entrance transform, which threw the measurement off before. */
+    revealAll();
+    if (typeof ScrollTrigger !== 'undefined') ScrollTrigger.refresh();
+    if (returnHash) {
+      var el = document.querySelector(returnHash);
+      return el ? (el.getBoundingClientRect().top + window.pageYOffset - 90) : null;
+    }
+    return restoreY;
+  }
+
+  function applyRestore(){
+    var target = computeTarget();
+    if (target === null) return;
+    window.scrollTo({top: Math.max(target, 0), behavior:'auto'});
+  }
+
+  applyRestore();
+  /* A slow first-ever load (cold CDN edge / uncached images+fonts on a fresh
+     GitHub Pages visit) can keep shifting the layout well after this point —
+     single checks on 'load'/'fonts.ready' don't always land after it settles.
+     Keep re-snapping to the target for a couple of seconds and stop on its own
+     once the position holds steady twice in a row, so this self-corrects
+     regardless of how long assets take to finish on that particular visit. */
+  var attempts = 0, lastTarget = null, stableCount = 0;
+  var poll = setInterval(function(){
+    attempts++;
+    var t = computeTarget();
+    if (t !== null) {
+      stableCount = (lastTarget !== null && Math.abs(t - lastTarget) < 2) ? stableCount + 1 : 0;
+      lastTarget = t;
+      window.scrollTo({top: Math.max(t, 0), behavior:'auto'});
+    }
+    if (stableCount >= 2 || attempts >= 24) clearInterval(poll);
+  }, 220);
+  window.addEventListener('load', applyRestore);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(applyRestore);
+  }
+})();
+});
+</script>
+</body>
+</html>

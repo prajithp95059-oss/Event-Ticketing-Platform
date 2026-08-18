@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* Keep this page exactly where the visitor left it — on reload, on browser
+   back/forward, and when coming back from an error page. A fresh click on a
+   header menu or quick link always starts at the hero, never a saved section.
+   Browser scroll-restoration is switched off so this script is the only thing
+   that moves the page, and it always does it instantly (no visible scrolling). */
+(function(){
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  var pageKey = 'stackly_scroll::' + location.pathname;
+  var navEntry = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || null;
+  var navType = navEntry ? navEntry.type : (performance.navigation ? (performance.navigation.type === 1 ? 'reload' : performance.navigation.type === 2 ? 'back_forward' : 'navigate') : 'navigate');
+  if (location.hash && location.hash.length > 1) {
+    window.__stacklyReturnHash = location.hash;
+    history.replaceState(null, '', location.pathname + location.search);
+  } else if (navType === 'reload' || navType === 'back_forward' || sessionStorage.getItem('stackly_forceRestore')) {
+    sessionStorage.removeItem('stackly_forceRestore');
+    var savedY = sessionStorage.getItem(pageKey);
+    if (savedY !== null) window.__stacklyRestoreY = parseFloat(savedY);
+  } else {
+    /* Fresh click on a header menu / quick link — always start at the hero,
+       never at whatever section was scrolled to last time on this page. */
+    sessionStorage.removeItem(pageKey);
+  }
+  var saveScroll = function(){ sessionStorage.setItem(pageKey, window.scrollY); };
+  var ticking = false;
+  window.addEventListener('scroll', function(){
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(function(){ saveScroll(); ticking = false; });
+    }
+  }, {passive:true});
+  window.addEventListener('pagehide', saveScroll);
+  window.addEventListener('beforeunload', saveScroll);
+})();
+</script>
+<title>Page Not Found — Stackly</title>
+<meta name="description" content="The page you're looking for doesn't exist. Head back to Stackly and keep discovering events.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<style>
+/* ===================== TOKENS ===================== */
+:root{
+  --royal:#2563EB;
+  --indigo:#312E81;
+  --cyan:#06B6D4;
+  --violet:#7C3AED;
+  --sky:#38BDF8;
+  --soft-blue:#EFF6FF;
+  --white:#FFFFFF;
+  --slate:#0F172A;
+  --slate-2:#1E293B;
+  --slate-mute:#64748B;
+  --line:#E2E8F0;
+  --grad-primary: linear-gradient(120deg,#2563EB 0%, #06B6D4 100%);
+  --grad-accent: linear-gradient(120deg,#4F46E5 0%, #7C3AED 100%);
+  --grad-dark: linear-gradient(180deg,#0F172A 0%, #1E1B4B 100%);
+  --shadow-lg: 0 24px 60px rgba(37,99,235,0.16);
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;overflow-x:hidden;width:100%;}
+body{
+  font-family:var(--font-body);
+  color:var(--slate);
+  background:var(--grad-dark);
+  line-height:1.5;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+a{text-decoration:none;color:inherit;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;}
+h1,h2,h3{font-family:var(--font-display);font-weight:600;line-height:1.1;letter-spacing:-0.01em;}
+.container{max-width:1760px;margin:0 auto;padding:0 40px;}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:15px 28px;border-radius:100px;font-weight:600;font-size:15px;
+  transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease, border-color .35s ease, color .35s ease;
+  white-space:nowrap;
+}
+.btn-primary{background:var(--grad-primary);color:#fff;box-shadow:0 10px 24px rgba(37,99,235,.28);}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(37,99,235,.36);}
+.btn-ghost{color:#fff;border:1.5px solid rgba(255,255,255,.35);}
+.btn-ghost:hover{border-color:#fff;transform:translateY(-3px);}
+
+/* ===================== HEADER ===================== */
+header{padding:26px 0;position:relative;z-index:5;}
+.logo{font-family:var(--font-display);font-weight:700;font-size:22px;color:#fff;display:flex;align-items:center;gap:2px;}
+.logo img{height:32px;width:auto;display:block;}
+
+/* ===================== NOT FOUND SECTION ===================== */
+.nf{
+  position:relative;min-height:calc(100vh - 88px);display:flex;align-items:center;justify-content:center;
+  overflow:hidden;padding:40px 0 70px;
+}
+.hero-blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;z-index:0;}
+.blob-1{width:520px;height:520px;background:var(--royal);top:-160px;right:-120px;}
+.blob-2{width:400px;height:400px;background:var(--violet);bottom:-160px;left:-80px;}
+.blob-3{width:280px;height:280px;background:var(--cyan);top:40%;left:44%;opacity:.25;}
+.particle{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);z-index:1;}
+
+.nf-content{position:relative;z-index:2;text-align:center;max-width:640px;margin:0 auto;padding:0 24px;}
+.nf-eyebrow{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--sky);
+  display:inline-flex;align-items:center;gap:8px;font-weight:600;
+}
+.nf-eyebrow::before,.nf-eyebrow::after{content:'';width:20px;height:1px;background:var(--sky);}
+.nf-code{
+  font-size:clamp(96px,16vw,180px);color:#fff;margin-top:14px;
+  background:var(--grad-primary);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  line-height:1;
+}
+.nf-ticket{
+  display:inline-flex;align-items:center;gap:10px;margin-top:2px;padding:10px 20px;border-radius:100px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.85);
+  font-family:var(--font-mono);font-size:12.5px;letter-spacing:.04em;
+}
+.nf-ticket .dot{width:6px;height:6px;border-radius:50%;background:#F87171;}
+.nf-title{font-size:clamp(24px,3.4vw,34px);color:#fff;margin-top:26px;}
+.nf-text{margin-top:14px;font-size:16px;color:rgba(255,255,255,.68);line-height:1.7;}
+.nf-actions{display:flex;gap:14px;justify-content:center;margin-top:38px;flex-wrap:wrap;}
+
+.nf-search{
+  margin-top:30px;display:flex;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
+  border-radius:100px;padding:6px 6px 6px 20px;max-width:420px;margin-left:auto;margin-right:auto;
+}
+.nf-search input{
+  flex:1;background:none;border:none;outline:none;color:#fff;font-size:14px;font-family:inherit;
+}
+.nf-search input::placeholder{color:rgba(255,255,255,.45);}
+.nf-search button{
+  background:var(--grad-primary);color:#fff;border-radius:100px;padding:10px 20px;font-weight:600;font-size:13.5px;
+  transition:transform .3s ease;
+}
+.nf-search button:hover{transform:translateY(-2px);}
+
+@media (max-width:600px){
+  .nf-actions{flex-direction:column;align-items:stretch;}
+  .nf-search{flex-direction:column;border-radius:20px;padding:16px;}
+  .nf-search button{width:100%;}
+}
+
+/* ===================== FOOTER ===================== */
+footer{background:var(--slate);color:rgba(255,255,255,.7);padding:80px 0 30px;position:relative;z-index:2;}
+.footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1.2fr;gap:32px;padding-bottom:50px;border-bottom:1px solid rgba(255,255,255,.1);}
+.footer-grid h5{color:#fff;font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:20px;}
+.footer-grid ul li{margin-bottom:12px;font-size:14px;}
+.footer-grid ul li a:hover{color:#fff;}
+.footer-brand p{font-size:14px;margin:16px 0 22px;line-height:1.7;color:rgba(255,255,255,.55);}
+.social-row{display:flex;gap:10px;}
+.social-icon{
+  width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;
+  transition:all .35s ease;color:#fff;
+}
+.social-icon:hover{transform:translateY(-4px);}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-top:26px;font-size:13px;}
+.footer-bottom .links{display:flex;gap:18px;flex-wrap:wrap;}
+
+@media (max-width:1024px){
+  .footer-grid{grid-template-columns:1fr 1fr;}
+}
+@media (max-width:600px){
+  .footer-grid{grid-template-columns:1fr 1fr;}
+}
+@media (max-width:425px){
+  .footer-grid{grid-template-columns:1fr;}
+  .footer-bottom{flex-direction:column;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+
+
+<section class="nf">
+  <div class="hero-blob blob-1"></div>
+  <div class="hero-blob blob-2"></div>
+  <div class="hero-blob blob-3"></div>
+
+  <div class="nf-content">
+    <span class="nf-eyebrow">Lost ticket</span>
+    <div class="nf-code">404</div>
+    <div class="nf-ticket"><span class="dot"></span> This page is sold out — it doesn't exist</div>
+
+    <h1 class="nf-title">We couldn't find that page</h1>
+    <p class="nf-text">The event, page or link you're looking for may have moved, ended, or never existed. Let's get you back to discovering something worth booking.</p>
+
+
+    <div class="nf-actions">
+      <a href="index.html#home" class="btn btn-primary" id="backHomeBtn">Back to Home</a>
+      <button class="btn btn-ghost" id="goBackBtn">Go Back</button>
+    </div>
+  </div>
+</section>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+/* ---------- CAPTURE ORIGIN PAGE (survives reload of this page) ---------- */
+(function(){
+  if(!sessionStorage.getItem('stackly_return') && document.referrer){
+    try{
+      const ref = new URL(document.referrer);
+      if(ref.origin === window.location.origin){
+        const page = ref.pathname.split('/').pop() || 'index.html';
+        sessionStorage.setItem('stackly_return', page + ref.hash);
+      }
+    }catch(e){}
+  }
+})();
+
+/* ---------- BACK TO HOME: clear any stored return section ---------- */
+document.getElementById('backHomeBtn').addEventListener('click', ()=>{
+  sessionStorage.removeItem('stackly_return');
+});
+
+/* ---------- GO BACK: return to the exact page/section that sent us here, even after a reload ---------- */
+document.getElementById('goBackBtn').addEventListener('click', ()=>{
+  const returnTo = sessionStorage.getItem('stackly_return');
+  if(returnTo){
+    sessionStorage.removeItem('stackly_return');
+    /* This is a deliberate "take me back" navigation, not a fresh menu click —
+       flag it so the target page restores its saved scroll position even though
+       it's technically a plain link navigation, not a reload. */
+    sessionStorage.setItem('stackly_forceRestore', '1');
+    window.location.href = returnTo;
+  } else if(history.length > 1){
+    history.back();
+  } else {
+    window.location.href = 'index.html#home';
+  }
+});
+
+/* ---------- SEARCH -> EVENTS PAGE ---------- */
+document.getElementById('nfSearch').addEventListener('submit', e=>{
+  e.preventDefault();
+  const q = e.target.querySelector('input').value.trim();
+  window.location.href = 'events.html' + (q ? ('?q=' + encodeURIComponent(q)) : '');
+});
+
+/* ---------- FLOATING PARTICLES ---------- */
+const nf = document.querySelector('.nf');
+for(let i=0;i<14;i++){
+  const p = document.createElement('span');
+  p.className = 'particle';
+  const size = 3 + Math.random()*4;
+  p.style.width = size+'px';
+  p.style.height = size+'px';
+  p.style.left = Math.random()*100+'%';
+  p.style.top = Math.random()*100+'%';
+  nf.appendChild(p);
+  gsap.to(p, {
+    y: -20 - Math.random()*40, x: (Math.random()-0.5)*30,
+    opacity: 0.15 + Math.random()*0.5, duration: 3 + Math.random()*3,
+    repeat:-1, yoyo:true, ease:'sine.inOut', delay: Math.random()*2
+  });
+}
+
+/* ---------- ENTRANCE ---------- */
+gsap.set(['.nf-eyebrow','.nf-code','.nf-ticket','.nf-title','.nf-text','.nf-search','.nf-actions'], {opacity:0, y:24});
+gsap.to('.nf-eyebrow', {opacity:1, y:0, duration:0.6, ease:'power2.out', delay:0.1});
+gsap.to('.nf-code', {opacity:1, y:0, duration:0.8, ease:'back.out(1.4)', delay:0.2});
+gsap.to('.nf-ticket', {opacity:1, y:0, duration:0.6, ease:'power2.out', delay:0.45});
+gsap.to('.nf-title', {opacity:1, y:0, duration:0.6, ease:'power2.out', delay:0.55});
+gsap.to('.nf-text', {opacity:1, y:0, duration:0.6, ease:'power2.out', delay:0.65});
+gsap.to('.nf-search', {opacity:1, y:0, duration:0.6, ease:'power2.out', delay:0.75});
+gsap.to('.nf-actions', {opacity:1, y:0, duration:0.6, ease:'power2.out', delay:0.85});
+/* ---------- Land exactly where the visitor left off (reload / return-from-error) — instantly, no visible scrolling ---------- */
+(function(){
+  var returnHash = window.__stacklyReturnHash || null;
+  var restoreY = (typeof window.__stacklyRestoreY === 'number') ? window.__stacklyRestoreY : null;
+  window.__stacklyReturnHash = null;
+  window.__stacklyRestoreY = null;
+  if (!returnHash && restoreY === null) return;
+
+  function revealAll(){
+    document.querySelectorAll('.reveal').forEach(function(el){
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    });
+    document.querySelectorAll('[style*="opacity: 0"], [style*="opacity:0"]').forEach(function(el){
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    });
+  }
+
+  function computeTarget(){
+    /* Reveal first, then measure — a still-hidden .reveal section sits offset
+       by its entrance transform, which threw the measurement off before. */
+    revealAll();
+    if (typeof ScrollTrigger !== 'undefined') ScrollTrigger.refresh();
+    if (returnHash) {
+      var el = document.querySelector(returnHash);
+      return el ? (el.getBoundingClientRect().top + window.pageYOffset - 90) : null;
+    }
+    return restoreY;
+  }
+
+  function applyRestore(){
+    var target = computeTarget();
+    if (target === null) return;
+    window.scrollTo({top: Math.max(target, 0), behavior:'auto'});
+  }
+
+  applyRestore();
+  /* A slow first-ever load (cold CDN edge / uncached images+fonts on a fresh
+     GitHub Pages visit) can keep shifting the layout well after this point —
+     single checks on 'load'/'fonts.ready' don't always land after it settles.
+     Keep re-snapping to the target for a couple of seconds and stop on its own
+     once the position holds steady twice in a row, so this self-corrects
+     regardless of how long assets take to finish on that particular visit. */
+  var attempts = 0, lastTarget = null, stableCount = 0;
+  var poll = setInterval(function(){
+    attempts++;
+    var t = computeTarget();
+    if (t !== null) {
+      stableCount = (lastTarget !== null && Math.abs(t - lastTarget) < 2) ? stableCount + 1 : 0;
+      lastTarget = t;
+      window.scrollTo({top: Math.max(t, 0), behavior:'auto'});
+    }
+    if (stableCount >= 2 || attempts >= 24) clearInterval(poll);
+  }, 220);
+  window.addEventListener('load', applyRestore);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(applyRestore);
+  }
+})();
+});
+</script>
+</body>
+</html>
